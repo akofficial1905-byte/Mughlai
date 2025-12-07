@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Mughlai Point — Order</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .font-semibold, .font-bold { color: #fff !important; text-shadow: 0 1px 5px #000a !important; }
+    select.variant-select { font-weight: bold; background: #ffd25a; color: #222; border-radius: 7px; border:none; box-shadow: 0 1px 4px #2224; padding: 4px 11px; font-size: 1em;}
+    option { color: #222; background: #fffbe4; font-size:1em; }
+    .text-xs { color: #ffd25a !important; }
+    .text-gray-300, .text-gray-400, .text-amber-200 { color: #ffd25a !important; }
+    input { color: #222 !important; background: #ffd25a !important; font-weight: bold !important; }
+    input::placeholder { color: #6d4f00 !important; opacity: 1 !important; font-weight: bold !important; }
+    @media (max-width:768px){
+      aside { display:none; }
+      #mobile-cart-bar { display:flex !important; }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-neutral-900 via-amber-900 to-neutral-800 min-h-screen text-gray-100">
+  <div class="max-w-7xl mx-auto p-6">
+    <header class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-4xl font-extrabold tracking-tight text-amber-300">Mughlai Point</h1>
+        <p class="text-sm text-amber-200/70">Contact: <b>+91-XXXXXXXXXX</b> • Royal Mughlai Cuisine</p>
+      </div>
+    </header>
+    <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Menu Area -->
+      <div class="lg:col-span-2 space-y-6">
+        <section class="bg-gray-900/60 rounded-2xl p-6 shadow-lg mb-6">
+          <h2 class="text-xl font-semibold text-amber-300 mb-4">Order Type</h2>
+          <div class="flex gap-4 mb-2 flex-wrap">
+            <button class="orderTypeBtn px-4 py-2 rounded bg-amber-400 font-bold text-black" data-type="dinein">Dine-In</button>
+            <button class="orderTypeBtn px-4 py-2 rounded bg-green-400 font-bold text-black" data-type="takeaway">Takeaway</button>
+          </div>
+          <div id="orderTypeForm" class="mt-4"></div>
+        </section>
+        <!-- Search and Categories -->
+        <section class="mb-5 flex flex-wrap gap-3 bg-gray-900/40 p-3 rounded-lg">
+          <input id="searchBox" type="text" placeholder="Search menu..." class="flex-1 px-3 py-2 rounded bg-yellow-50 text-black font-bold border-none focus:ring w-full sm:w-auto" />
+          <div id="catBtns" class="flex flex-wrap gap-2 w-full sm:w-auto"></div>
+        </section>
+        <section id="menuSections" class="space-y-6"></section>
+      </div>
+      <!-- Desktop Cart -->
+      <aside class="bg-gray-900/50 rounded-2xl p-5 shadow-lg h-fit sticky top-6">
+        <h3 class="text-lg font-semibold text-amber-300 mb-3">🛒 Cart</h3>
+        <div id="cartList" class="space-y-3 text-gray-200"></div>
+        <div class="mt-4 border-t border-gray-700 pt-3">
+          <div class="flex justify-between mt-3 border-t border-gray-700 pt-3">
+            <div class="text-lg font-bold text-amber-200">Total</div>
+            <div id="totalAmount" class="text-lg font-bold text-amber-200">₹0</div>
+          </div>
+          <button id="checkoutBtn" class="mt-4 w-full bg-gradient-to-r from-amber-400 to-yellow-300 text-black py-3 rounded-lg font-bold shadow hover:scale-105">Checkout & Pay</button>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- Mobile and Toast (same as previous) -->
+  <div id="mobile-cart-bar" class="fixed bottom-0 left-0 right-0 bg-amber-400 text-black font-bold p-4 hidden justify-between items-center shadow-lg z-50">
+    <span id="mobile-cart-summary">🛒 0 items | ₹0</span>
+    <button onclick="toggleMobileCart(true)" class="bg-black text-amber-300 px-4 py-2 rounded-lg">View Cart</button>
+  </div>
+  <div id="mobile-cart-drawer" class="fixed bottom-0 left-0 right-0 bg-gray-900 text-amber-200 rounded-t-3xl shadow-2xl hidden z-50 transition-transform duration-300" style="max-height:80%;overflow-y:auto;">
+    <div class="flex justify-between items-center p-4 border-b border-amber-400">
+      <h3 class="text-lg font-bold">🛒 Your Cart</h3>
+      <button onclick="toggleMobileCart(false)" class="text-red-400 font-bold text-lg">❌</button>
+    </div>
+    <div id="mobileCartList" class="p-4 space-y-3"></div>
+    <div class="p-4 border-t border-amber-400">
+      <div class="flex justify-between text-lg font-bold mb-4">
+        <span>Total:</span>
+        <span id="mobileTotalAmount">₹0</span>
+      </div>
+      <button id="mobileCheckoutBtn" class="w-full bg-amber-400 text-black py-3 rounded-lg font-bold shadow hover:scale-105">Checkout & Pay</button>
+    </div>
+  </div>
+  <div id="added-toast" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#222;color:#ffd25a;padding:14px 28px;border-radius:22px;z-index:1001;font-size:1.15em;box-shadow:0 2px 10px #111;"> Added to cart! </div>
+  <script>
+    let menu = {}, cart = [];
+    let orderType = null, searchTerm = "";
+
+    document.querySelectorAll('.orderTypeBtn').forEach(btn => {
+      btn.onclick = () => { orderType = btn.dataset.type; renderOrderTypeForm(); };
+    });
+
+    function renderOrderTypeForm() {
+      let html = '';
+      if (orderType === 'dinein') {
+        html = `<input id="customerName" placeholder="Name" class="p-3 border border-gray-700 rounded w-full mb-3" required />
+          <input id="tableNumber" placeholder="Table Number" class="p-3 border border-gray-700 rounded w-full mb-3" required />
+          <input id="mobile" placeholder="Mobile Number" class="p-3 border border-gray-700 rounded w-full mb-3" required />`;
+      } else {
+        html = `<input id="customerName" placeholder="Name" class="p-3 border border-gray-700 rounded w-full mb-3" required />
+          <input id="mobile" placeholder="Mobile Number" class="p-3 border border-gray-700 rounded w-full mb-3" required />
+          <input id="address" placeholder="Address" class="p-3 border border-gray-700 rounded w-full mb-3" required />`;
+      }
+      document.getElementById('orderTypeForm').innerHTML = html;
+    }
+
+    async function initMenu(){
+      menu = await (await fetch('/menu.json')).json();
+      renderCatBtns(); renderMenu();
+    }
+
+    function renderCatBtns() {
+      const catBtns = document.getElementById('catBtns');
+      catBtns.innerHTML = '';
+      Object.keys(menu).forEach(cat => {
+        const btn = document.createElement('button');
+        btn.className = 'bg-amber-400 px-3 py-1 rounded font-bold text-black hover:bg-amber-500';
+        btn.innerText = cat;
+        btn.onclick = () => document.getElementById('cat-' + cat.replace(/\s+/g,'_')).scrollIntoView({behavior:'smooth'});
+        catBtns.appendChild(btn);
+      });
+    }
+
+    function renderMenu() {
+      const container = document.getElementById('menuSections');
+      container.innerHTML = '';
+      for (const [category, items] of Object.entries(menu)) {
+        const filteredItems = (searchTerm && searchTerm.length>0) ?
+          items.filter(it => it.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            Object.keys(it.variants||{}).join(',').toLowerCase().includes(searchTerm.toLowerCase())
+          )
+          : items;
+        if(filteredItems.length === 0) continue;
+        const section = document.createElement('section');
+        section.className = 'bg-gray-900/60 rounded-2xl p-4 shadow-lg';
+        section.id = 'cat-' + category.replace(/\s+/g,'_');
+        let html = `<h3 class="text-lg font-semibold text-amber-200 mb-3">${category}</h3>`;
+        html += `<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-3">`;
+        for (const it of filteredItems) {
+          const variants = it.variants || {};
+          const opts = Object.entries(variants).map(([k,v]) => `<option value="${v}">${k} — ₹${v}</option>`).join('');
+          html += `
+            <div class="bg-gray-800/40 p-3 rounded-xl flex flex-col justify-between items-center">
+              <div class="font-semibold text-center mb-1">${it.name}</div>
+              ${it.details ? `<div class="text-xs text-amber-200 mb-2">${it.details}</div>` : ''}
+              <select class="variant-select p-1 rounded mb-2" data-name="${it.name}">
+                ${opts}
+              </select>
+              <button class="addBtn px-3 py-1 bg-amber-400 text-black rounded-lg font-semibold w-full mb-1" data-name="${it.name}">Add</button>
+            </div>
+          `;
+        }
+        html += `</div>`;
+        section.innerHTML = html;
+        container.appendChild(section);
+      }
+      document.querySelectorAll('.addBtn').forEach(btn => {
+        btn.onclick = () => {
+          const name = btn.getAttribute('data-name');
+          const select = [...document.querySelectorAll('.variant-select')].find(s => s.dataset.name === name);
+          const price = Number(select.value);
+          const label = select.options[select.selectedIndex].text;
+          addToCart({ name: name + ' (' + label.split(' — ')[0] + ')', price, qty: 1 });
+        };
+      });
+    }
+
+    document.getElementById('searchBox').oninput = function(e){
+      searchTerm = this.value;
+      renderMenu();
+    };
+
+    function addToCart(item) {
+      const existing = cart.find(c => c.name === item.name && c.price === item.price);
+      if (existing) { existing.qty++; }
+      else { cart.push(item); }
+      renderCart();
+      updateCartCount();
+      showToast('Added to cart!');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('added-toast');
+      toast.textContent = msg;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 1400);
+    }
+
+    function renderCart() {
+      const cartList = document.getElementById('cartList');
+      const mobileCartList = document.getElementById('mobileCartList');
+      if (!cartList || !mobileCartList) return;
+      const html = cart.map((c, i) => `
+        <div class="flex justify-between items-center">
+          <div>
+            <div class="font-medium">${c.name}</div>
+            <div class="text-sm text-amber-200">₹${c.price} × ${c.qty}</div>
+          </div>
+          <div class="flex flex-col items-end gap-2">
+            <div class="font-semibold">₹${c.price * c.qty}</div>
+            <div class="flex gap-2">
+              <button onclick="changeQty(${i},1)" class="px-2 py-1 bg-gray-700 rounded">+</button>
+              <button onclick="changeQty(${i},-1)" class="px-2 py-1 bg-red-600 rounded">-</button>
+            </div>
+          </div>
+        </div>
+      `).join('') || '<div class="text-amber-200">Cart is empty</div>';
+      cartList.innerHTML = html;
+      mobileCartList.innerHTML = html;
+      const subtotal = cart.reduce((s,c) => s + c.price * c.qty, 0);
+      document.getElementById('totalAmount').innerText = '₹' + subtotal;
+      document.getElementById('mobileTotalAmount').innerText = '₹' + subtotal;
+      document.getElementById('mobile-cart-summary').innerText = `🛒 ${cart.reduce((s,c)=>s+c.qty,0)} items | ₹${subtotal}`;
+    }
+
+    function changeQty(index, delta) {
+      cart[index].qty += delta;
+      if (cart[index].qty <= 0) cart.splice(index,1);
+      renderCart(); updateCartCount();
+    }
+
+    function updateCartCount() {
+      document.getElementById('mobile-cart-summary').innerText = `🛒 ${cart.reduce((s,c)=>s+c.qty,0)} items | ₹${cart.reduce((s,c)=>s+c.price*c.qty,0)}`;
+    }
+
+    function toggleMobileCart(show) {
+      document.getElementById('mobile-cart-drawer').style.display = show ? 'block' : 'none';
+    }
+
+    async function checkout() {
+      if (!orderType) { alert('Select order type'); return; }
+      const name = document.getElementById('customerName')?.value?.trim();
+      const mobile = document.getElementById('mobile')?.value?.trim();
+      const tableNumber = document.getElementById('tableNumber')?.value?.trim() || '';
+      const address = document.getElementById('address')?.value?.trim() || '';
+      if (!name || !mobile || (orderType==='dinein'&&!tableNumber) || ((orderType!=='dinein')&&!address)) {
+        alert('Fill all required details'); return;
+      }
+      if (cart.length===0){ alert('Cart is empty'); return; }
+      const payload={ orderType, customerName:name, tableNumber, mobile, address,
+        items: cart.map(c=>({ name:c.name, price:c.price, qty:c.qty })) };
+      const resp = await fetch('/api/orders',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(payload)
+      });
+      if (!resp.ok){ alert('Order failed'); return; }
+      const order = await resp.json();
+      alert(`Order placed successfully! Total ₹${order.total}`);
+      cart=[]; renderCart(); toggleMobileCart(false);
+    }
+
+    document.getElementById('checkoutBtn').onclick = checkout;
+    document.getElementById('mobileCheckoutBtn').onclick = checkout;
+
+    initMenu(); renderCart(); updateCartCount();
+  </script>
+</body>
+</html>
