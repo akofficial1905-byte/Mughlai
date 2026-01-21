@@ -3,77 +3,119 @@
 <head>
 <meta charset="UTF-8">
 <title>Mughlai Point — Digital Menu</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
 :root{
-  --bg:#0c0c0c;
-  --paper:#1b1b1b;
+  --bg:#0b0b0b;
+  --paper:#1c1c1c;
   --gold:#d4af37;
-  --text:#f4f4f4;
+  --text:#f5f5f5;
 }
 *{box-sizing:border-box}
 body{
   margin:0;
   background:var(--bg);
   color:var(--text);
-  font-family:Poppins, sans-serif;
+  font-family:Poppins,sans-serif;
   overflow:hidden;
 }
+
+#viewport{
+  width:100vw;
+  height:100vh;
+  overflow:hidden;
+  position:relative;
+}
+
 #book{
   display:flex;
-  height:100vh;
-  transition:transform .7s cubic-bezier(.4,.0,.2,1);
+  height:100%;
+  transition:transform .6s cubic-bezier(.4,0,.2,1);
 }
+
 .page{
   min-width:100vw;
   height:100vh;
-  padding:42px 26px 90px;
-  background:linear-gradient(160deg,#121212,#1e1e1e);
+  padding:36px 24px 110px;
+  background:linear-gradient(160deg,#121212,#1f1f1f);
   position:relative;
+  overflow:hidden;
 }
+
 .center{
-  height:100%;
   display:flex;
   flex-direction:column;
   justify-content:center;
   align-items:center;
   text-align:center;
+  height:100%;
 }
+
 h1,h2,h3{
   font-family:"Playfair Display",serif;
   color:var(--gold);
 }
-h1{font-size:3rem}
-h2{font-size:2rem;margin-bottom:18px}
-button{
-  background:linear-gradient(90deg,#d4af37,#f2d57c);
-  border:none;
-  padding:14px 28px;
-  border-radius:32px;
-  font-weight:600;
-  cursor:pointer;
-}
+h1{font-size:2.8rem}
+h2{font-size:1.8rem;margin-bottom:16px}
+
 .pageNo{
   position:absolute;
   bottom:18px;
-  right:24px;
-  color:#aaa;
+  right:22px;
   font-size:.85rem;
+  color:#aaa;
 }
+
 .nav{
   position:fixed;
   top:50%;
   transform:translateY(-50%);
-  font-size:34px;
+  font-size:32px;
   color:var(--gold);
   cursor:pointer;
   z-index:10;
 }
 #prev{left:14px}
 #next{right:14px}
+
+/* Contents */
+.contents-row{
+  display:flex;
+  justify-content:space-between;
+  width:100%;
+  max-width:420px;
+  padding:10px 0;
+  border-bottom:1px solid #333;
+  cursor:pointer;
+}
+
+/* Items */
+.item{
+  background:#2a2a2a;
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:14px;
+}
+.item b{font-size:1.05rem}
+select{
+  width:100%;
+  margin-top:8px;
+  padding:10px;
+  border-radius:8px;
+  border:none;
+}
+.add{
+  width:100%;
+  margin-top:8px;
+  background:linear-gradient(90deg,#d4af37,#f2d57c);
+  border:none;
+  padding:10px;
+  border-radius:20px;
+  font-weight:600;
+}
 
 /* Floating cart */
 #cartBtn{
@@ -100,39 +142,38 @@ button{
   background:#1f1f1f;
   width:90%;
   max-width:420px;
-  margin:60px auto;
+  max-height:85vh;
+  margin:40px auto;
   padding:20px;
   border-radius:18px;
+  display:flex;
+  flex-direction:column;
 }
+#cartItems{flex:1;overflow:auto;margin-bottom:10px}
+
 input,select{
   width:100%;
   padding:12px;
   border-radius:8px;
   border:none;
-  margin-bottom:12px;
+  margin-bottom:10px;
 }
-.item{
-  background:#2a2a2a;
-  border-radius:14px;
-  padding:14px;
-  margin-bottom:14px;
-}
-.add{width:100%;margin-top:8px}
-.contents-row{
-  width:100%;
-  max-width:420px;
-  display:flex;
-  justify-content:space-between;
-  padding:10px 0;
-  border-bottom:1px solid #333;
-  cursor:pointer;
+
+button.primary{
+  background:linear-gradient(90deg,#d4af37,#f2d57c);
+  border:none;
+  padding:12px;
+  border-radius:22px;
+  font-weight:600;
 }
 </style>
 </head>
 
 <body>
 
-<div id="book"></div>
+<div id="viewport">
+  <div id="book"></div>
+</div>
 
 <div id="prev" class="nav">❮</div>
 <div id="next" class="nav">❯</div>
@@ -156,72 +197,85 @@ input,select{
     <input id="table" placeholder="Table Number" style="display:none">
     <input id="address" placeholder="Address" style="display:none">
 
-    <button onclick="checkout()">Place Order</button>
+    <button class="primary" onclick="checkout()">Place Order</button>
     <button onclick="closeCart()">Close</button>
   </div>
 </div>
 
 <script>
-let page=0,pages=[],menu={},cart=[];
+const ITEMS_PER_PAGE = 6;
+let page=0,locked=false,pages=[],menu={},cart=[];
 const book=document.getElementById("book");
 
-/* Swipe */
+/* Swipe control (STRONG) */
 let sx=0;
 document.addEventListener("touchstart",e=>sx=e.touches[0].clientX);
 document.addEventListener("touchend",e=>{
+ if(locked)return;
  let dx=e.changedTouches[0].clientX-sx;
- if(dx>60)prev(); if(dx<-60)next();
+ if(dx>90)prev();
+ if(dx<-90)next();
 });
-prev.onclick=()=>prev(); next.onclick=()=>next();
-function prev(){ if(page>0)go(page-1) }
-function next(){ if(page<pages.length-1)go(page+1) }
+
+prev.onclick=()=>prev();
+next.onclick=()=>next();
+function prev(){ if(page>0)go(page-1); }
+function next(){ if(page<pages.length-1)go(page+1); }
+
 function go(i){
+ locked=true;
  page=i;
  book.style.transform=`translateX(-${i*100}vw)`;
+ setTimeout(()=>locked=false,650);
 }
 
 fetch("/menu.json").then(r=>r.json()).then(m=>{menu=m;build();});
 
 function build(){
- let p=1;
+ let pg=1;
+
  book.innerHTML+=`
  <section class="page center">
   <h1>Mughlai Point</h1>
   <p>Royal Mughlai Cuisine</p>
   <p>📞 +91-XXXXXXXXXX</p>
-  <button onclick="go(1)">Open Menu</button>
+  <button class="primary" onclick="go(1)">Open Menu</button>
  </section>`;
 
- let rows="",index=2;
+ let contents="",startPage=2;
  Object.keys(menu).forEach(c=>{
-  rows+=`<div class="contents-row" onclick="go(${index})">
-           <span>${c}</span><span>${index}</span>
-         </div>`;
-  index++;
+  contents+=`
+   <div class="contents-row" onclick="go(${startPage})">
+    <span>${c}</span><span>${startPage}</span>
+   </div>`;
+  startPage += Math.ceil(menu[c].length / ITEMS_PER_PAGE);
  });
 
  book.innerHTML+=`
  <section class="page center">
-  <h2>Contents</h2>${rows}
+  <h2>Contents</h2>${contents}
   <div class="pageNo">2</div>
  </section>`;
 
- let pg=3;
+ let currentPage=3;
  for(let [cat,items] of Object.entries(menu)){
-  let html=`<h2>${cat}</h2>`;
-  items.forEach(it=>{
-   let opts=Object.entries(it.variants)
-     .map(v=>`<option value="${v[1]}">${v[0]} — ₹${v[1]}</option>`).join("");
-   html+=`
-   <div class="item">
-    <b>${it.name}</b>
-    <select>${opts}</select>
-    <button class="add" onclick="add('${it.name}',this)">Add</button>
-   </div>`;
-  });
-  book.innerHTML+=`
-  <section class="page">${html}<div class="pageNo">${pg++}</div></section>`;
+  for(let i=0;i<items.length;i+=ITEMS_PER_PAGE){
+   let slice=items.slice(i,i+ITEMS_PER_PAGE);
+   let title=i===0?cat:`${cat} (Continued)`;
+   let html=`<h2>${title}</h2>`;
+   slice.forEach(it=>{
+    let opts=Object.entries(it.variants).map(v=>`<option value="${v[1]}">${v[0]} — ₹${v[1]}</option>`).join("");
+    html+=`
+     <div class="item">
+      <b>${it.name}</b>
+      <select>${opts}</select>
+      <button class="add" onclick="add('${it.name}',this)">Add</button>
+     </div>`;
+   });
+   book.innerHTML+=`<section class="page">${html}<div class="pageNo">${currentPage++}</div></section>`;
+  }
  }
+
  pages=document.querySelectorAll(".page");
 }
 
@@ -248,18 +302,17 @@ function toggleFields(){
 }
 
 function checkout(){
- let type=orderType.value;
- if(!name.value||!mobile.value||!type||cart.length===0){
+ if(!name.value||!mobile.value||!orderType.value||cart.length===0){
   alert("Please fill required details");return;
  }
- if(type==="dinein"&&!table.value){alert("Enter table number");return;}
- if(type==="takeaway"&&!address.value){alert("Enter address");return;}
+ if(orderType.value==="dinein"&&!table.value){alert("Enter table number");return;}
+ if(orderType.value==="takeaway"&&!address.value){alert("Enter address");return;}
 
  fetch("/api/orders",{
   method:"POST",
   headers:{"Content-Type":"application/json"},
   body:JSON.stringify({
-    orderType:type,
+    orderType:orderType.value,
     customerName:name.value,
     mobile:mobile.value,
     tableNumber:table.value,
