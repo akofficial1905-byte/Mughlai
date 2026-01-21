@@ -40,8 +40,24 @@ body{
   min-width:100vw;
   height:100vh;
   padding:22px 18px 110px;
-  background:linear-gradient(160deg,#121212,#1f1f1f);
+  background:
+    radial-gradient(circle at center, rgba(212,175,55,0.04), transparent 60%),
+    linear-gradient(160deg,#121212,#1f1f1f);
   position:relative;
+}
+
+.page::before{
+  content:"MUGHLai POINT";
+  position:absolute;
+  inset:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-family:"Playfair Display",serif;
+  font-size:3.8rem;
+  color:rgba(255,255,255,0.04);
+  letter-spacing:4px;
+  pointer-events:none;
 }
 
 .center{
@@ -93,13 +109,21 @@ h2{font-size:1.5rem;margin-bottom:12px}
   z-index:15;
 }
 
-/* Contents */
-.contents-row{
-  display:flex;
-  justify-content:space-between;
-  padding:8px 0;
-  border-bottom:1px solid #333;
+/* Contents grid */
+.contents-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:14px;
+  width:100%;
+  max-width:420px;
+}
+.contents-card{
+  background:#2a2a2a;
+  padding:14px;
+  border-radius:14px;
+  text-align:center;
   cursor:pointer;
+  font-weight:600;
 }
 
 /* Items grid */
@@ -121,15 +145,20 @@ h2{font-size:1.5rem;margin-bottom:12px}
 }
 .item b{
   display:block;
-  font-size:.9rem;
-  margin-bottom:6px;
+  font-size:.95rem;
+  margin-bottom:4px;
+}
+.price{
+  font-size:.8rem;
+  color:var(--gold);
+  margin-bottom:4px;
 }
 select{
   width:100%;
   padding:6px;
   border-radius:6px;
   border:none;
-  font-size:.8rem;
+  font-size:.75rem;
 }
 .add{
   margin-top:6px;
@@ -234,7 +263,7 @@ const ITEMS_PER_PAGE = window.innerWidth < 500 ? 6 : 8;
 let page=0,locked=false,menu={},cart=[];
 const book=document.getElementById("book");
 
-/* Swipe */
+/* Swipe + arrows */
 let sx=0;
 document.addEventListener("touchstart",e=>sx=e.touches[0].clientX);
 document.addEventListener("touchend",e=>{
@@ -243,12 +272,10 @@ document.addEventListener("touchend",e=>{
  if(dx>90)prev();
  if(dx<-90)next();
 });
-
 prev.onclick=()=>prev();
 next.onclick=()=>next();
 function prev(){ if(page>0)go(page-1); }
 function next(){ if(page<book.children.length-1)go(page+1); }
-
 function go(i){
  locked=true;
  page=i;
@@ -269,13 +296,14 @@ function build(){
 
  let contents="",start=2;
  Object.keys(menu).forEach(c=>{
-  contents+=`<div class="contents-row" onclick="go(${start})"><span>${c}</span><span>${start}</span></div>`;
+  contents+=`<div class="contents-card" onclick="go(${start})">${c}</div>`;
   start+=Math.ceil(menu[c].length/ITEMS_PER_PAGE);
  });
 
  book.innerHTML+=`
  <section class="page center">
-  <h2>Contents</h2>${contents}
+  <h2>Menu</h2>
+  <div class="contents-grid">${contents}</div>
   <div class="pageNo">2</div>
  </section>`;
 
@@ -287,9 +315,11 @@ function build(){
    let html=`<h2>${title}</h2><div class="items-grid">`;
    slice.forEach(it=>{
     let opts=Object.entries(it.variants).map(v=>`<option value="${v[1]}">${v[0]} — ₹${v[1]}</option>`).join("");
+    let minPrice=Math.min(...Object.values(it.variants));
     html+=`
      <div class="item">
       <b>${it.name}</b>
+      <div class="price">From ₹${minPrice}</div>
       <select>${opts}</select>
       <button class="add" onclick="add('${it.name}',this)">Add</button>
      </div>`;
@@ -323,21 +353,22 @@ function toggleFields(){
 }
 
 function checkout(){
- if(!name.value||!mobile.value||!orderType.value||cart.length===0){
-  alert("Please fill required details");return;
- }
- if(orderType.value==="dinein"&&!table.value){alert("Enter table number");return;}
- if(orderType.value==="takeaway"&&!address.value){alert("Enter address");return;}
+ if(cart.length===0){alert("Cart is empty");return;}
+ if(!name.value.trim()){alert("Enter name");return;}
+ if(!mobile.value.trim()){alert("Enter mobile");return;}
+ if(!orderType.value){alert("Select order type");return;}
+ if(orderType.value==="dinein"&&!table.value.trim()){alert("Enter table number");return;}
+ if(orderType.value==="takeaway"&&!address.value.trim()){alert("Enter address");return;}
 
  fetch("/api/orders",{
   method:"POST",
-  headers:{"Content-Type":"application/json"},
+  headers:{ "Content-Type":"application/json" },
   body:JSON.stringify({
     orderType:orderType.value,
-    customerName:name.value,
-    mobile:mobile.value,
-    tableNumber:table.value,
-    address:address.value,
+    customerName:name.value.trim(),
+    mobile:mobile.value.trim(),
+    tableNumber:orderType.value==="dinein"?table.value.trim():"",
+    address:orderType.value==="takeaway"?address.value.trim():"",
     items:cart
   })
  }).then(()=>{alert("Order placed");location.reload();});
