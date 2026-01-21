@@ -5,17 +5,15 @@
 <title>Mughlai Point — Digital Menu</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
 :root{
-  --bg:#0f0f0f;
-  --paper:#1a1a1a;
+  --bg:#0c0c0c;
+  --paper:#1b1b1b;
   --gold:#d4af37;
-  --text:#f5f5f5;
+  --text:#f4f4f4;
 }
-
 *{box-sizing:border-box}
 body{
   margin:0;
@@ -24,129 +22,110 @@ body{
   font-family:Poppins, sans-serif;
   overflow:hidden;
 }
-
 #book{
   display:flex;
-  width:100vw;
   height:100vh;
-  transition:transform .5s ease;
+  transition:transform .7s cubic-bezier(.4,.0,.2,1);
 }
-
 .page{
   min-width:100vw;
   height:100vh;
-  padding:40px 22px 90px;
-  background:linear-gradient(145deg,#121212,#1c1c1c);
+  padding:42px 26px 90px;
+  background:linear-gradient(160deg,#121212,#1e1e1e);
+  position:relative;
 }
-
 .center{
+  height:100%;
   display:flex;
   flex-direction:column;
   justify-content:center;
   align-items:center;
   text-align:center;
-  height:100%;
 }
-
 h1,h2,h3{
-  font-family:Playfair Display, serif;
+  font-family:"Playfair Display",serif;
   color:var(--gold);
 }
-
 h1{font-size:3rem}
-h2{font-size:2rem}
-h3{font-size:1.4rem}
-
+h2{font-size:2rem;margin-bottom:18px}
 button{
+  background:linear-gradient(90deg,#d4af37,#f2d57c);
   border:none;
-  background:linear-gradient(90deg,#d4af37,#f1d57a);
-  color:#000;
+  padding:14px 28px;
+  border-radius:32px;
   font-weight:600;
-  padding:14px 26px;
-  border-radius:30px;
   cursor:pointer;
 }
-
-button:active{transform:scale(.96)}
-
 .pageNo{
   position:absolute;
   bottom:18px;
-  right:22px;
+  right:24px;
   color:#aaa;
   font-size:.85rem;
 }
-
-/* Navigation */
 .nav{
   position:fixed;
   top:50%;
   transform:translateY(-50%);
-  font-size:30px;
+  font-size:34px;
   color:var(--gold);
   cursor:pointer;
-  user-select:none;
   z-index:10;
 }
-#prev{left:12px}
-#next{right:12px}
+#prev{left:14px}
+#next{right:14px}
 
-/* Floating Cart */
+/* Floating cart */
 #cartBtn{
   position:fixed;
   right:18px;
   bottom:18px;
   background:var(--gold);
   color:#000;
-  border-radius:40px;
   padding:14px 18px;
+  border-radius:40px;
   font-weight:700;
   z-index:20;
 }
 
-/* Cart Modal */
+/* Cart modal */
 #cartModal{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.7);
+  background:rgba(0,0,0,.75);
   display:none;
   z-index:30;
 }
 #cartBox{
-  background:#1e1e1e;
+  background:#1f1f1f;
   width:90%;
   max-width:420px;
   margin:60px auto;
   padding:20px;
   border-radius:18px;
 }
-
-/* Menu Cards */
+input,select{
+  width:100%;
+  padding:12px;
+  border-radius:8px;
+  border:none;
+  margin-bottom:12px;
+}
 .item{
   background:#2a2a2a;
   border-radius:14px;
   padding:14px;
   margin-bottom:14px;
 }
-select{
+.add{width:100%;margin-top:8px}
+.contents-row{
   width:100%;
-  margin-top:8px;
-  padding:10px;
-  border-radius:8px;
-  border:none;
-}
-.add{
-  margin-top:10px;
-  width:100%;
-}
-
-/* Inputs */
-input{
-  width:100%;
-  padding:12px;
-  border-radius:8px;
-  border:none;
-  margin-bottom:12px;
+  max-width:420px;
+  display:flex;
+  justify-content:space-between;
+  padding:10px 0;
+  border-bottom:1px solid #333;
+  cursor:pointer;
 }
 </style>
 </head>
@@ -160,15 +139,13 @@ input{
 
 <button id="cartBtn">🛒 0 | ₹0</button>
 
-<!-- CART -->
 <div id="cartModal">
   <div id="cartBox">
     <h3>Your Order</h3>
     <div id="cartItems"></div>
     <p><b>Total: ₹<span id="total">0</span></b></p>
 
-    <h4>Customer Details</h4>
-    <select id="orderType">
+    <select id="orderType" onchange="toggleFields()">
       <option value="">Select Order Type</option>
       <option value="dinein">Dine In</option>
       <option value="takeaway">Takeaway</option>
@@ -176,8 +153,8 @@ input{
 
     <input id="name" placeholder="Customer Name">
     <input id="mobile" placeholder="Mobile Number">
-    <input id="table" placeholder="Table No (Dine-In)">
-    <input id="address" placeholder="Address (Takeaway)">
+    <input id="table" placeholder="Table Number" style="display:none">
+    <input id="address" placeholder="Address" style="display:none">
 
     <button onclick="checkout()">Place Order</button>
     <button onclick="closeCart()">Close</button>
@@ -185,73 +162,72 @@ input{
 </div>
 
 <script>
-let pages=[],page=0,menu={},cart=[];
+let page=0,pages=[],menu={},cart=[];
+const book=document.getElementById("book");
 
 /* Swipe */
-let startX=0;
-document.addEventListener("touchstart",e=>startX=e.touches[0].clientX);
+let sx=0;
+document.addEventListener("touchstart",e=>sx=e.touches[0].clientX);
 document.addEventListener("touchend",e=>{
- let dx=e.changedTouches[0].clientX-startX;
- if(dx>50) prev(); if(dx<-50) next();
+ let dx=e.changedTouches[0].clientX-sx;
+ if(dx>60)prev(); if(dx<-60)next();
 });
-
 prev.onclick=()=>prev(); next.onclick=()=>next();
-function prev(){ if(page>0) show(page-1) }
-function next(){ if(page<pages.length-1) show(page+1) }
-
-function show(i){
+function prev(){ if(page>0)go(page-1) }
+function next(){ if(page<pages.length-1)go(page+1) }
+function go(i){
  page=i;
- document.getElementById("book").style.transform=`translateX(-${i*100}vw)`
+ book.style.transform=`translateX(-${i*100}vw)`;
 }
 
-/* Init */
-fetch("/menu.json").then(r=>r.json()).then(m=>{
- menu=m;
- build();
-});
+fetch("/menu.json").then(r=>r.json()).then(m=>{menu=m;build();});
 
 function build(){
- const book=document.getElementById("book");
-
- /* Cover */
+ let p=1;
  book.innerHTML+=`
  <section class="page center">
   <h1>Mughlai Point</h1>
   <p>Royal Mughlai Cuisine</p>
   <p>📞 +91-XXXXXXXXXX</p>
-  <button onclick="show(1)">Open Menu</button>
+  <button onclick="go(1)">Open Menu</button>
  </section>`;
 
- /* Contents */
- let list="",p=2;
- Object.keys(menu).forEach(c=>{ list+=`<p>${c} ........ ${p++}</p>`; });
+ let rows="",index=2;
+ Object.keys(menu).forEach(c=>{
+  rows+=`<div class="contents-row" onclick="go(${index})">
+           <span>${c}</span><span>${index}</span>
+         </div>`;
+  index++;
+ });
+
  book.innerHTML+=`
  <section class="page center">
-  <h2>Contents</h2>${list}
-  <div class="pageNo">1</div>
+  <h2>Contents</h2>${rows}
+  <div class="pageNo">2</div>
  </section>`;
 
- /* Categories */
- let pg=2;
+ let pg=3;
  for(let [cat,items] of Object.entries(menu)){
   let html=`<h2>${cat}</h2>`;
   items.forEach(it=>{
-    let opts=Object.entries(it.variants).map(v=>`<option value="${v[1]}">${v[0]} — ₹${v[1]}</option>`).join("");
-    html+=`
-    <div class="item">
-      <b>${it.name}</b>
-      <select>${opts}</select>
-      <button class="add" onclick="add('${it.name}',this)">Add</button>
-    </div>`;
+   let opts=Object.entries(it.variants)
+     .map(v=>`<option value="${v[1]}">${v[0]} — ₹${v[1]}</option>`).join("");
+   html+=`
+   <div class="item">
+    <b>${it.name}</b>
+    <select>${opts}</select>
+    <button class="add" onclick="add('${it.name}',this)">Add</button>
+   </div>`;
   });
-  book.innerHTML+=`<section class="page">${html}<div class="pageNo">${pg++}</div></section>`;
+  book.innerHTML+=`
+  <section class="page">${html}<div class="pageNo">${pg++}</div></section>`;
  }
  pages=document.querySelectorAll(".page");
 }
 
 function add(name,btn){
  let price=+btn.previousElementSibling.value;
- let f=cart.find(i=>i.name==name && i.price==price);
+ let f=cart.find(i=>i.name===name && i.price===price);
  if(f)f.qty++; else cart.push({name,price,qty:1});
  updateCart();
 }
@@ -260,26 +236,37 @@ function updateCart(){
  let c=cart.reduce((s,i)=>s+i.qty,0);
  let t=cart.reduce((s,i)=>s+i.qty*i.price,0);
  cartBtn.innerText=`🛒 ${c} | ₹${t}`;
+ document.getElementById("total").innerText=t;
 }
 
 cartBtn.onclick=()=>cartModal.style.display="block";
 function closeCart(){cartModal.style.display="none"}
 
+function toggleFields(){
+ table.style.display=orderType.value==="dinein"?"block":"none";
+ address.style.display=orderType.value==="takeaway"?"block":"none";
+}
+
 function checkout(){
  let type=orderType.value;
- let payload={
-  orderType:type,
-  customerName:name.value,
-  mobile:mobile.value,
-  tableNumber:table.value,
-  address:address.value,
-  items:cart
- };
- if(!payload.customerName||!payload.mobile||!type||cart.length==0){
-  alert("Fill all details"); return;
+ if(!name.value||!mobile.value||!type||cart.length===0){
+  alert("Please fill required details");return;
  }
- fetch("/api/orders",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
- .then(()=>{alert("Order placed"); location.reload()});
+ if(type==="dinein"&&!table.value){alert("Enter table number");return;}
+ if(type==="takeaway"&&!address.value){alert("Enter address");return;}
+
+ fetch("/api/orders",{
+  method:"POST",
+  headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({
+    orderType:type,
+    customerName:name.value,
+    mobile:mobile.value,
+    tableNumber:table.value,
+    address:address.value,
+    items:cart
+  })
+ }).then(()=>{alert("Order placed");location.reload();});
 }
 </script>
 
