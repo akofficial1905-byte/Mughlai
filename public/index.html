@@ -1,255 +1,285 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Mughlai Point — Digital Menu</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="UTF-8">
+<title>Mughlai Point — Digital Menu</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      background: radial-gradient(circle at top, #3b2a15, #0f0b07);
-      color: #f5e6c8;
-      overflow: hidden;
-    }
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
-    .page {
-      position: absolute;
-      inset: 0;
-      padding: 20px;
-      display: none;
-      animation: turnIn 0.45s ease;
-    }
+<style>
+:root{
+  --bg:#0f0f0f;
+  --paper:#1a1a1a;
+  --gold:#d4af37;
+  --text:#f5f5f5;
+}
 
-    .page.active {
-      display: block;
-    }
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Poppins, sans-serif;
+  overflow:hidden;
+}
 
-    @keyframes turnIn {
-      from { transform: rotateY(20deg) scale(0.98); opacity: 0 }
-      to { transform: rotateY(0deg) scale(1); opacity: 1 }
-    }
+#book{
+  display:flex;
+  width:100vw;
+  height:100vh;
+  transition:transform .5s ease;
+}
 
-    .gold-btn {
-      background: linear-gradient(135deg, #f7c873, #c89b3c);
-      color: #1a1207;
-      font-weight: bold;
-      border-radius: 999px;
-      padding: 12px 26px;
-    }
+.page{
+  min-width:100vw;
+  height:100vh;
+  padding:40px 22px 90px;
+  background:linear-gradient(145deg,#121212,#1c1c1c);
+}
 
-    .card {
-      background: rgba(0,0,0,0.45);
-      border: 1px solid rgba(255,215,150,0.15);
-      border-radius: 18px;
-      padding: 14px;
-    }
+.center{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  height:100%;
+}
 
-    .floating-cart {
-      position: fixed;
-      right: 18px;
-      bottom: 18px;
-      background: linear-gradient(135deg, #f7c873, #c89b3c);
-      color: #1a1207;
-      font-weight: bold;
-      padding: 14px 18px;
-      border-radius: 999px;
-      box-shadow: 0 10px 30px #000;
-      z-index: 50;
-    }
+h1,h2,h3{
+  font-family:Playfair Display, serif;
+  color:var(--gold);
+}
 
-    select, input {
-      background: #f7c873;
-      color: #1a1207;
-      font-weight: bold;
-      border-radius: 8px;
-      padding: 8px;
-      width: 100%;
-    }
-  </style>
+h1{font-size:3rem}
+h2{font-size:2rem}
+h3{font-size:1.4rem}
+
+button{
+  border:none;
+  background:linear-gradient(90deg,#d4af37,#f1d57a);
+  color:#000;
+  font-weight:600;
+  padding:14px 26px;
+  border-radius:30px;
+  cursor:pointer;
+}
+
+button:active{transform:scale(.96)}
+
+.pageNo{
+  position:absolute;
+  bottom:18px;
+  right:22px;
+  color:#aaa;
+  font-size:.85rem;
+}
+
+/* Navigation */
+.nav{
+  position:fixed;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:30px;
+  color:var(--gold);
+  cursor:pointer;
+  user-select:none;
+  z-index:10;
+}
+#prev{left:12px}
+#next{right:12px}
+
+/* Floating Cart */
+#cartBtn{
+  position:fixed;
+  right:18px;
+  bottom:18px;
+  background:var(--gold);
+  color:#000;
+  border-radius:40px;
+  padding:14px 18px;
+  font-weight:700;
+  z-index:20;
+}
+
+/* Cart Modal */
+#cartModal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.7);
+  display:none;
+  z-index:30;
+}
+#cartBox{
+  background:#1e1e1e;
+  width:90%;
+  max-width:420px;
+  margin:60px auto;
+  padding:20px;
+  border-radius:18px;
+}
+
+/* Menu Cards */
+.item{
+  background:#2a2a2a;
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:14px;
+}
+select{
+  width:100%;
+  margin-top:8px;
+  padding:10px;
+  border-radius:8px;
+  border:none;
+}
+.add{
+  margin-top:10px;
+  width:100%;
+}
+
+/* Inputs */
+input{
+  width:100%;
+  padding:12px;
+  border-radius:8px;
+  border:none;
+  margin-bottom:12px;
+}
+</style>
 </head>
 
 <body>
 
-<!-- ================= COVER PAGE ================= -->
-<section id="cover" class="page active text-center flex flex-col justify-center">
-  <h1 class="text-5xl font-extrabold text-yellow-300">Mughlai Point</h1>
-  <p class="mt-2 text-yellow-200">Royal Mughlai Cuisine</p>
-  <p class="mt-1 text-sm">📞 +91-XXXXXXXXXX</p>
+<div id="book"></div>
 
-  <button class="gold-btn mt-10" onclick="go('details')">Open Menu</button>
-</section>
+<div id="prev" class="nav">❮</div>
+<div id="next" class="nav">❯</div>
 
-<!-- ================= CUSTOMER DETAILS ================= -->
-<section id="details" class="page">
-  <h2 class="text-2xl font-bold mb-4">Order Details</h2>
+<button id="cartBtn">🛒 0 | ₹0</button>
 
-  <div class="flex gap-4 mb-4">
-    <button class="gold-btn" onclick="setType('dinein')">Dine-In</button>
-    <button class="gold-btn" onclick="setType('takeaway')">Takeaway</button>
+<!-- CART -->
+<div id="cartModal">
+  <div id="cartBox">
+    <h3>Your Order</h3>
+    <div id="cartItems"></div>
+    <p><b>Total: ₹<span id="total">0</span></b></p>
+
+    <h4>Customer Details</h4>
+    <select id="orderType">
+      <option value="">Select Order Type</option>
+      <option value="dinein">Dine In</option>
+      <option value="takeaway">Takeaway</option>
+    </select>
+
+    <input id="name" placeholder="Customer Name">
+    <input id="mobile" placeholder="Mobile Number">
+    <input id="table" placeholder="Table No (Dine-In)">
+    <input id="address" placeholder="Address (Takeaway)">
+
+    <button onclick="checkout()">Place Order</button>
+    <button onclick="closeCart()">Close</button>
   </div>
-
-  <div class="space-y-3">
-    <input id="customerName" placeholder="Customer Name" />
-    <input id="mobile" placeholder="Mobile Number" />
-
-    <input id="tableNumber" placeholder="Table Number (Dine-In)" />
-    <input id="address" placeholder="Address (Takeaway)" />
-  </div>
-
-  <button class="gold-btn mt-6" onclick="go('categories')">Continue</button>
-</section>
-
-<!-- ================= CATEGORIES ================= -->
-<section id="categories" class="page">
-  <h2 class="text-2xl font-bold mb-4">Select Category</h2>
-  <div id="catBtns" class="grid grid-cols-2 gap-4"></div>
-
-  <button class="mt-6 underline" onclick="go('details')">← Back</button>
-</section>
-
-<!-- ================= MENU ================= -->
-<section id="menu" class="page overflow-y-auto">
-  <h2 id="menuTitle" class="text-xl font-bold mb-4"></h2>
-  <div id="menuItems" class="grid grid-cols-1 gap-3"></div>
-
-  <button class="mt-6 underline" onclick="go('categories')">← Back</button>
-</section>
-
-<!-- ================= FLOATING CART ================= -->
-<button class="floating-cart" onclick="toggleCart()">
-  🛒 <span id="cartCount">0</span> | ₹<span id="cartTotal">0</span>
-</button>
-
-<!-- ================= CART DRAWER ================= -->
-<div id="cartDrawer" class="page card">
-  <h3 class="text-xl font-bold mb-3">Your Cart</h3>
-  <div id="cartList" class="space-y-2"></div>
-
-  <div class="mt-4 font-bold">
-    Total: ₹<span id="totalAmount">0</span>
-  </div>
-
-  <button class="gold-btn mt-4 w-full" onclick="checkout()">Place Order</button>
-  <button class="mt-4 underline w-full" onclick="toggleCart()">Close</button>
 </div>
 
 <script>
-/* ===== STATE ===== */
-let currentType = null;
-let cart = [];
-let menu = {};
-let currentCategory = "";
+let pages=[],page=0,menu={},cart=[];
 
-/* ===== NAV ===== */
-function go(id){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+/* Swipe */
+let startX=0;
+document.addEventListener("touchstart",e=>startX=e.touches[0].clientX);
+document.addEventListener("touchend",e=>{
+ let dx=e.changedTouches[0].clientX-startX;
+ if(dx>50) prev(); if(dx<-50) next();
+});
+
+prev.onclick=()=>prev(); next.onclick=()=>next();
+function prev(){ if(page>0) show(page-1) }
+function next(){ if(page<pages.length-1) show(page+1) }
+
+function show(i){
+ page=i;
+ document.getElementById("book").style.transform=`translateX(-${i*100}vw)`
 }
 
-/* ===== ORDER TYPE ===== */
-function setType(t){
-  currentType = t;
-  document.getElementById('tableNumber').style.display = t==='dinein'?'block':'none';
-  document.getElementById('address').style.display = t==='takeaway'?'block':'none';
-}
+/* Init */
+fetch("/menu.json").then(r=>r.json()).then(m=>{
+ menu=m;
+ build();
+});
 
-/* ===== LOAD MENU ===== */
-async function init(){
-  menu = await (await fetch('/menu.json')).json();
-  const catBtns = document.getElementById('catBtns');
-  Object.keys(menu).forEach(cat=>{
-    const b = document.createElement('button');
-    b.className = 'card';
-    b.innerText = cat;
-    b.onclick = ()=>openCategory(cat);
-    catBtns.appendChild(b);
+function build(){
+ const book=document.getElementById("book");
+
+ /* Cover */
+ book.innerHTML+=`
+ <section class="page center">
+  <h1>Mughlai Point</h1>
+  <p>Royal Mughlai Cuisine</p>
+  <p>📞 +91-XXXXXXXXXX</p>
+  <button onclick="show(1)">Open Menu</button>
+ </section>`;
+
+ /* Contents */
+ let list="",p=2;
+ Object.keys(menu).forEach(c=>{ list+=`<p>${c} ........ ${p++}</p>`; });
+ book.innerHTML+=`
+ <section class="page center">
+  <h2>Contents</h2>${list}
+  <div class="pageNo">1</div>
+ </section>`;
+
+ /* Categories */
+ let pg=2;
+ for(let [cat,items] of Object.entries(menu)){
+  let html=`<h2>${cat}</h2>`;
+  items.forEach(it=>{
+    let opts=Object.entries(it.variants).map(v=>`<option value="${v[1]}">${v[0]} — ₹${v[1]}</option>`).join("");
+    html+=`
+    <div class="item">
+      <b>${it.name}</b>
+      <select>${opts}</select>
+      <button class="add" onclick="add('${it.name}',this)">Add</button>
+    </div>`;
   });
-}
-init();
-
-/* ===== CATEGORY ===== */
-function openCategory(cat){
-  currentCategory = cat;
-  document.getElementById('menuTitle').innerText = cat;
-  const box = document.getElementById('menuItems');
-  box.innerHTML = '';
-
-  menu[cat].forEach(it=>{
-    const variants = Object.entries(it.variants||{});
-    const sel = variants.map(v=>`<option value="${v[1]}">${v[0]} — ₹${v[1]}</option>`).join('');
-
-    const d = document.createElement('div');
-    d.className = 'card';
-    d.innerHTML = `
-      <div class="font-bold">${it.name}</div>
-      ${it.details?`<div class="text-sm">${it.details}</div>`:''}
-      <select>${sel}</select>
-      <button class="gold-btn mt-2 w-full">Add</button>
-    `;
-    d.querySelector('button').onclick = ()=>{
-      const s = d.querySelector('select');
-      addToCart(it.name, s.options[s.selectedIndex].text, Number(s.value));
-    };
-    box.appendChild(d);
-  });
-
-  go('menu');
+  book.innerHTML+=`<section class="page">${html}<div class="pageNo">${pg++}</div></section>`;
+ }
+ pages=document.querySelectorAll(".page");
 }
 
-/* ===== CART ===== */
-function addToCart(name, label, price){
-  const key = name+'-'+price;
-  const e = cart.find(c=>c.key===key);
-  if(e) e.qty++;
-  else cart.push({ key, name:`${name} (${label.split(' — ')[0]})`, price, qty:1 });
-  renderCart();
+function add(name,btn){
+ let price=+btn.previousElementSibling.value;
+ let f=cart.find(i=>i.name==name && i.price==price);
+ if(f)f.qty++; else cart.push({name,price,qty:1});
+ updateCart();
 }
 
-function renderCart(){
-  const list = document.getElementById('cartList');
-  list.innerHTML = '';
-  let total = 0, count = 0;
-
-  cart.forEach(c=>{
-    total += c.price*c.qty;
-    count += c.qty;
-    const r = document.createElement('div');
-    r.innerHTML = `${c.name} × ${c.qty} — ₹${c.price*c.qty}`;
-    list.appendChild(r);
-  });
-
-  document.getElementById('cartTotal').innerText = total;
-  document.getElementById('totalAmount').innerText = total;
-  document.getElementById('cartCount').innerText = count;
+function updateCart(){
+ let c=cart.reduce((s,i)=>s+i.qty,0);
+ let t=cart.reduce((s,i)=>s+i.qty*i.price,0);
+ cartBtn.innerText=`🛒 ${c} | ₹${t}`;
 }
 
-/* ===== CART TOGGLE ===== */
-function toggleCart(){
-  document.getElementById('cartDrawer').classList.toggle('active');
-}
+cartBtn.onclick=()=>cartModal.style.display="block";
+function closeCart(){cartModal.style.display="none"}
 
-/* ===== CHECKOUT (UNCHANGED PAYLOAD) ===== */
-async function checkout(){
-  const payload = {
-    orderType: currentType,
-    customerName: customerName.value,
-    mobile: mobile.value,
-    tableNumber: tableNumber.value,
-    address: address.value,
-    items: cart.map(c=>({ name:c.name, price:c.price, qty:c.qty }))
-  };
-
-  const r = await fetch('/api/orders',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify(payload)
-  });
-
-  if(r.ok){
-    alert('Order placed successfully');
-    cart=[]; renderCart(); toggleCart(); go('cover');
-  } else alert('Order failed');
+function checkout(){
+ let type=orderType.value;
+ let payload={
+  orderType:type,
+  customerName:name.value,
+  mobile:mobile.value,
+  tableNumber:table.value,
+  address:address.value,
+  items:cart
+ };
+ if(!payload.customerName||!payload.mobile||!type||cart.length==0){
+  alert("Fill all details"); return;
+ }
+ fetch("/api/orders",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
+ .then(()=>{alert("Order placed"); location.reload()});
 }
 </script>
 
