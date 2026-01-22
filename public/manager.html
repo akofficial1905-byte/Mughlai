@@ -4,380 +4,249 @@
   <meta charset="utf-8" />
   <title>Mughlai Point — Manager Portal</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="/socket.io/socket.io.js"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
   <style>
-    .order-type-badge { font-size:12px; font-weight:bold; border-radius:7px; padding:2px 8px; margin-right:6px }
+    body { font-family: Inter, system-ui, sans-serif; }
+
+    .order-type-badge {
+      font-size: 12px;
+      font-weight: bold;
+      border-radius: 7px;
+      padding: 4px 10px;
+    }
     .order-type-dinein { background:#fbbf24; color:#222; }
     .order-type-takeaway { background:#34d399; color:#222; }
     .order-type-delivery { background:#60a5fa; color:#fff; }
-    .insight-label { color: #b45309; font-weight: bold; font-size: 1.18rem; letter-spacing: .8px; }
-    .insight-select, .insight-input, #dashboardDate, #dashboardPeriod {
-      font-weight: bold; font-size: 1.13rem; background: #fffbe8; color: #7c4700; border: 2px solid #fbbf24; border-radius: 8px; padding: 7px 16px; margin: 0 7px 0 0;
+
+    .order-card {
+      border-radius: 16px;
+      padding: 16px;
     }
-    .insight-box { background: #fffbe8; border: 3px solid #fbbf24; border-radius: 16px; padding: 24px; margin-top: 16px; color: #4c1d06; font-size: 1.13rem; }
-    .insight-result-table th, .insight-result-table td { border-bottom: 2px solid #fbbf24; padding: 8px 12px!important; font-size:1.12em; }
-    .insight-big-value { font-size:2.0em;font-weight:800; color:#a16207; }
-    .insight-mid-value { font-size:1.15em;font-weight:700;}
-    .dashboard-label { font-size: 1.14rem; font-weight: bold; color: #a37000; padding-right:8px;}
-    @media (max-width:700px){
-      .grid-cols-2, .md\:grid-cols-2 { grid-template-columns: 1fr !important; }
-      .flex { flex-direction: column !important; }
-      .max-w-7xl, .max-w-4xl { max-width: 99vw !important;}
-      .p-6, .py-10, .px-8, .mb-8, .my-10 { padding:12px !important; margin:6px !important; }
+
+    .order-items li {
+      padding: 6px 0;
+      font-size: 0.95rem;
+    }
+
+    .order-actions button {
+      padding: 10px 14px;
+      font-size: 0.95rem;
+      border-radius: 10px;
+    }
+
+    .tab-btn {
+      transition: all .2s;
+    }
+
+    @media (max-width:768px){
+      .order-card h3 { font-size: 1.05rem; }
+      .order-card { font-size: 0.95rem; }
     }
   </style>
 </head>
+
 <body class="bg-gradient-to-b from-slate-900 via-gray-900 to-black text-gray-100 min-h-screen">
-  <div class="max-w-7xl mx-auto p-6">
-    <header class="flex justify-between items-center mb-6">
+
+<div class="max-w-7xl mx-auto p-4">
+
+  <!-- HEADER -->
+  <header class="mb-6">
+    <h1 class="text-3xl font-extrabold text-amber-300">Mughlai Point — Manager</h1>
+    <p class="text-sm text-gray-400">Live Orders • Dashboard • Printing</p>
+  </header>
+
+  <!-- TABS -->
+  <div class="flex gap-2 mb-6">
+    <button id="tabOrders" class="tab-btn bg-amber-400 text-black px-4 py-2 rounded font-bold">Orders</button>
+    <button id="tabAnalytics" class="tab-btn bg-gray-700 text-gray-200 px-4 py-2 rounded font-bold">Analytics</button>
+  </div>
+
+  <!-- ORDERS SECTION -->
+  <div id="ordersSection">
+
+    <!-- DATE FILTER -->
+    <div class="bg-gray-800 rounded-xl p-4 mb-4 flex flex-col sm:flex-row justify-between gap-4">
       <div>
-        <h1 class="text-4xl font-extrabold text-amber-300">Mughlai Point — Manager</h1>
-        <p class="text-sm text-gray-400">
-          Contact: <b>+91-XXXXXXXXXX</b> • Daily live orders, dashboards, print
-        </p>
+        <label class="text-sm text-amber-300 font-bold">Select Date</label>
+        <input id="datePicker" type="date"
+          class="bg-yellow-50 text-black font-bold p-2 rounded mt-1">
       </div>
-      <a href="/index.html" class="px-4 py-2 bg-gray-800 rounded text-gray-200">Customer View</a>
-    </header>
+      <div class="text-sm">
+        <div>Total Orders: <span id="totalOrders" class="text-amber-300 font-bold">0</span></div>
+        <div>Revenue: ₹<span id="totalRevenue" class="text-green-300 font-bold">0</span></div>
+      </div>
+    </div>
+
+    <!-- ORDER LISTS -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <section>
+        <h2 class="text-xl font-semibold text-yellow-200 mb-4">Incoming Orders</h2>
+        <div id="incoming" class="space-y-4"></div>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-semibold text-green-300 mb-4">Delivered Orders</h2>
+        <div id="delivered" class="space-y-4"></div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- ANALYTICS SECTION -->
+  <div id="analyticsSection" style="display:none">
 
     <!-- DASHBOARD -->
-    <section id="dashboard" class="bg-white rounded-xl p-6 mb-8 shadow-xl border border-gray-300">
-      <div class="flex flex-wrap gap-4 mb-4 items-center">
-        <span class="dashboard-label">View:</span>
-        <select id="dashboardPeriod" class="insight-select">
+    <section class="bg-white rounded-xl p-6 mb-6 shadow border">
+      <div class="flex flex-wrap gap-4 items-center mb-4">
+        <select id="dashboardPeriod" class="border p-2 rounded font-bold">
           <option value="day">Day</option>
           <option value="week">Week</option>
           <option value="month">Month</option>
         </select>
-        <span class="dashboard-label">Date:</span>
-        <input id="dashboardDate" type="date" class="insight-input" />
+        <input id="dashboardDate" type="date" class="border p-2 rounded font-bold">
       </div>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
-        <div class="bg-amber-50 border border-yellow-200 rounded-lg p-4 text-center">
-          <div class="text-lg font-bold text-amber-700" id="sales-today">₹0</div>
-          <div class="text-xs mt-2 text-gray-700">Sales</div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-amber-50 p-4 rounded text-center">
+          <div id="sales-today" class="text-xl font-bold text-amber-700">₹0</div>
+          <div class="text-sm">Sales</div>
         </div>
-        <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-          <div class="text-lg font-bold text-green-700" id="orders-month">0</div>
-          <div class="text-xs mt-2 text-gray-700">Orders</div>
+        <div class="bg-green-50 p-4 rounded text-center">
+          <div id="orders-month" class="text-xl font-bold text-green-700">0</div>
+          <div class="text-sm">Orders</div>
         </div>
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-          <div class="text-lg font-bold text-blue-700" id="peak-hour">-</div>
-          <div class="text-xs mt-2 text-gray-700">Peak Hour</div>
+        <div class="bg-blue-50 p-4 rounded text-center">
+          <div id="peak-hour" class="text-xl font-bold text-blue-700">-</div>
+          <div class="text-sm">Peak Hour</div>
         </div>
-        <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-          <div class="text-lg font-bold text-red-700" id="top-dish">-</div>
-          <div class="text-xs mt-2 text-gray-700">Most Ordered</div>
+        <div class="bg-red-50 p-4 rounded text-center">
+          <div id="top-dish" class="text-xl font-bold text-red-700">-</div>
+          <div class="text-sm">Top Dish</div>
         </div>
       </div>
     </section>
 
     <!-- INSIGHTS -->
-    <section class="bg-white border-4 border-yellow-500 shadow-lg rounded-xl py-10 px-8 my-10">
-      <h3 class="text-2xl font-extrabold text-yellow-800 mb-7 tracking-wider">📊 Detailed Insights & Comparison</h3>
-      <form class="flex flex-wrap gap-7 items-center mb-4">
-        <label class="insight-label">Insight:
-          <select id="insightType" class="insight-select ml-1">
-            <option value="compare_sales">Sales Comparison</option>
-            <option value="repeat_customers">Repeat Customers (in period)</option>
-            <option value="best_dish">Most Ordered Dish (period)</option>
-            <option value="customer_search">Look-up Customer Visits (by name)</option>
-          </select>
-        </label>
-        <label id="compareByLabel" style="display:none;" class="insight-label ml-1">Compare by:
-          <select id="compareBy" class="insight-select ml-1">
-            <option value="day">Day</option>
-            <option value="week">Week</option>
-            <option value="month">Month</option>
-          </select>
-        </label>
-        <label class="insight-label font-extrabold text-amber-700">First Date:
-          <input type="date" id="insightFrom" class="insight-input ml-1"/>
-        </label>
-        <label class="insight-label font-extrabold text-amber-700">Second Date:
-          <input type="date" id="insightTo" class="insight-input ml-1"/>
-        </label>
-        <input id="insightName" class="insight-input ml-1" style="display:none;" placeholder="Customer Name" />
-        <button type="button" class="bg-yellow-400 hover:bg-yellow-500 text-black font-extrabold rounded px-5 py-2 ml-2 shadow-lg text-lg" onclick="runInsight()">Show</button>
-      </form>
-      <div id="insightResult" class="insight-box"></div>
+    <section class="bg-white rounded-xl p-6 shadow">
+      <h3 class="text-xl font-bold mb-4 text-yellow-800">Insights</h3>
+      <div id="insightResult"></div>
     </section>
 
-    <!-- ORDERS -->
-    <div class="bg-gray-800 rounded-2xl p-4 mb-6 flex justify-between items-center">
-      <div>
-        <label class="text-sm text-yellow-300 font-bold mr-2">Select Date:</label>
-        <input id="datePicker" type="date" class="bg-yellow-50 border border-yellow-400 p-2 font-bold rounded" />
-      </div>
-      <div class="flex flex-col text-right gap-2">
-        <div class="text-sm text-gray-400">Total Orders: <span id="totalOrders" class="font-bold text-amber-300">0</span></div>
-        <div class="text-sm text-gray-400">Revenue: ₹<span id="totalRevenue" class="font-bold text-green-300">0</span></div>
-        <div class="flex gap-3">
-          <span class="order-type-badge order-type-dinein">Dine-in: <span id="countDinein">0</span></span>
-          <span class="order-type-badge order-type-takeaway">Takeaway: <span id="countTakeaway">0</span></span>
-          <span class="order-type-badge order-type-delivery">Delivery: <span id="countDelivery">0</span></span>
-        </div>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <section>
-        <h2 class="text-xl font-semibold text-yellow-200 mb-4">🟡 Upcoming / Incoming Orders</h2>
-        <div id="incoming" class="space-y-4"></div>
-      </section>
-      <section>
-        <h2 class="text-xl font-semibold text-green-300 mb-4">🟢 Delivered Orders</h2>
-        <div id="delivered" class="space-y-4"></div>
-      </section>
-    </div>
   </div>
-  <script>
-    const socket = io();
-    const datePicker = document.getElementById('datePicker');
-    datePicker.value = new Date().toISOString().slice(0,10);
+</div>
 
-    async function fetchOrders(date) {
-      const res = await fetch('/api/orders?date=' + date);
-      const orders = await res.json();
-      render(orders);
-    }
+<script>
+/* ================= SOCKET ================= */
+const socket = io();
 
-    function render(orders) {
-      const dinein = orders.filter(o => o.orderType === 'dinein');
-      const takeaway = orders.filter(o => o.orderType === 'takeaway');
-      const delivery = orders.filter(o => o.orderType === 'delivery');
-      document.getElementById('totalOrders').innerText = orders.length;
-      document.getElementById('totalRevenue').innerText = orders.reduce((s,o)=>s+o.total,0);
-      document.getElementById('countDinein').innerText = dinein.length;
-      document.getElementById('countTakeaway').innerText = takeaway.length;
-      document.getElementById('countDelivery').innerText = delivery.length;
+/* ================= TABS ================= */
+const tabOrders = document.getElementById('tabOrders');
+const tabAnalytics = document.getElementById('tabAnalytics');
+const ordersSection = document.getElementById('ordersSection');
+const analyticsSection = document.getElementById('analyticsSection');
 
-      const incoming = orders.filter(o => (o.status || '').trim().toLowerCase() !== 'delivered' && (o.status || '').trim().toLowerCase() !== 'deleted');
-      const delivered = orders.filter(o => (o.status || '').trim().toLowerCase() === 'delivered');
+tabOrders.onclick = () => {
+  ordersSection.style.display = 'block';
+  analyticsSection.style.display = 'none';
+  tabOrders.className = 'tab-btn bg-amber-400 text-black px-4 py-2 rounded font-bold';
+  tabAnalytics.className = 'tab-btn bg-gray-700 text-gray-200 px-4 py-2 rounded font-bold';
+};
+tabAnalytics.onclick = () => {
+  ordersSection.style.display = 'none';
+  analyticsSection.style.display = 'block';
+  tabAnalytics.className = 'tab-btn bg-amber-400 text-black px-4 py-2 rounded font-bold';
+  tabOrders.className = 'tab-btn bg-gray-700 text-gray-200 px-4 py-2 rounded font-bold';
+};
 
-      document.getElementById('incoming').innerHTML = incoming.length
-        ? incoming.map(o => cardHtml(o, true)).join('')
-        : '<div class="text-yellow-300 font-semibold text-lg py-8 text-center">No upcoming/incoming orders for selected date.</div>';
-      document.getElementById('delivered').innerHTML = delivered.length
-        ? delivered.map(o => cardHtml(o, false)).join('')
-        : '<div class="text-green-200 font-semibold text-lg py-8 text-center">No delivered orders yet.</div>';
-    }
+/* ================= ORDERS ================= */
+const datePicker = document.getElementById('datePicker');
+datePicker.value = new Date().toISOString().slice(0,10);
 
-    function cardHtml(o, isIncoming) {
-      return `
-        <div class="bg-${isIncoming ? 'gray-900 border border-amber-400' : 'gray-800 border border-gray-700'} rounded-lg p-4 shadow">
-          <div class="flex justify-between items-start">
-            <div>
-              <span class="order-type-badge order-type-${o.orderType}">${o.orderType.charAt(0).toUpperCase() + o.orderType.slice(1)}</span>
-              <span class="font-bold text-lg">${o.customerName || '-'}</span>
-              <div class="text-xs text-gray-400">${new Date(o.createdAt).toLocaleString()}</div>
-              <div class="text-xs text-gray-400 mt-1">${renderOrderDetails(o)}</div>
-            </div>
-            <div class="text-right">
-              <div class="font-semibold ${isIncoming ? 'text-amber-200' : 'text-green-300'}">₹${o.total}</div>
-              <div class="text-xs text-gray-400">${o.mobile ? "📱 " + o.mobile : ""}</div>
-            </div>
-          </div>
-          <ul class="mt-3 text-sm ${isIncoming ? 'text-gray-200' : 'text-gray-300'}">
-            ${o.items.map(it=>`<li>• ${it.qty} × ${formatDisplayName(it)} — ₹${it.price}</li>`).join('')}
-          </ul>
-          <div class="mt-3 flex flex-wrap gap-2">
-            ${isIncoming ? `
-              <button class="card-btn px-3 py-1 bg-blue-600 rounded" onclick="updateStatus('${o._id}','preparing')">Preparing</button>
-              <button class="card-btn px-3 py-1 bg-green-600 rounded" onclick="updateStatus('${o._id}','delivered')">Delivered</button>
-              <button class="card-btn px-3 py-1 bg-red-600 rounded" onclick="deleteOrder('${o._id}')">Delete</button>
-            ` : ``}
-            <button class="card-btn px-3 py-1 bg-teal-400 text-black rounded font-bold" onclick='bluetoothPrint(${JSON.stringify(o)})'>Bluetooth Print</button>
-          </div>
-        </div>
-      `;
-    }
-    function renderOrderDetails(o) {
-      if (o.orderType === 'dinein') return `Table: ${o.tableNumber || '—'}`;
-      else if (o.orderType === 'takeaway' || o.orderType === 'delivery') return `Address: ${o.address || '—'}`;
-      return '';
-    }
-    function formatDisplayName(it) {
-      const variant = it.variant || it.size || it.option || '';
-      const v = variant ? ` (${variant})` : '';
-      return `${it.name}${v}`;
-    }
-    async function updateStatus(id, status) {
-      await fetch('/api/orders/' + id + '/status', {
-        method: 'PATCH',
-        headers: { 'Content-Type':'application/json' },
-        body: JSON.stringify({ status })
-      });
-    }
-    async function deleteOrder(id) {
-      if (!confirm('Delete this order?')) return;
-      await fetch('/api/orders/' + id + '/status', {
-        method: 'PATCH',
-        headers: { 'Content-Type':'application/json' },
-        body: JSON.stringify({ status: 'deleted' })
-      });
-    }
+async function fetchOrders(date){
+  const res = await fetch('/api/orders?date='+date);
+  const orders = await res.json();
+  renderOrders(orders);
+}
 
-    // ============ BLUETOOTH PRINT ============
-    const LINE_WIDTH = 32;
-    function line(char='-') { return char.repeat(LINE_WIDTH) + '\n'; }
-    function padRight(str, len) { str = (str ?? '').toString(); return str.length >= len ? str.slice(0, len) : str + ' '.repeat(len - str.length); }
-    function padLeft(str, len) { str = (str ?? '').toString(); return str.length >= len ? str.slice(0, len) : ' '.repeat(len - str.length) + str; }
-    function money(n) { const v = Number(n || 0); return '₹' + (Number.isInteger(v) ? v : v.toFixed(2)); }
-    function formatItemRow(name, qty, amt) { return padRight(name,18)+padLeft(qty.toString(),4)+padLeft(amt,10)+'\n'; }
+function renderOrders(orders){
+  const incoming = orders.filter(o=>o.status!=='delivered' && o.status!=='deleted');
+  const delivered = orders.filter(o=>o.status==='delivered');
 
-    function buildReceipt(order) {
-      let out = '';
-      out += 'MUGHLAI POINT\n';
-      out += line('-');
-      out += `Order Type: ${String(order.orderType || '').toUpperCase()}\n`;
-      out += `Customer: ${order.customerName || '-'}\n`;
-      if (order.orderType === 'dinein' && order.tableNumber) out += `Table No: ${order.tableNumber}\n`;
-      if ((order.orderType === 'delivery' || order.orderType === 'takeaway') && order.address) out += `Address: ${order.address}\n`;
-      out += line('-');
-      out += formatItemRow('Item', 'Qty', 'Amt');
-      (order.items || []).forEach(it => {
-        const visibleName = formatDisplayName(it);
-        const name = visibleName.length > 18 ? visibleName.slice(0,18) : visibleName;
-        const amt = money((it.qty || 0) * (it.price || 0));
-        out += formatItemRow(name, it.qty || 0, amt);
-      });
-      out += line('-');
-      const totalLabel = padRight('TOTAL:', 8);
-      const totalAmt = padLeft(money(order.total), LINE_WIDTH - totalLabel.length);
-      out += totalLabel + totalAmt + '\n';
-      out += `Status: ${order.status || 'incoming'}\n`;
-      out += `${new Date(order.createdAt).toLocaleString()}\n`;
-      out += '\nThank you! Visit Again\n\n';
-      return out;
-    }
-    function bluetoothPrint(order) {
-      try {
-        const receipt = buildReceipt(order);
-        const uri = 'rawbt:' + encodeURIComponent(receipt);
-        window.location.href = uri;
-        setTimeout(() => console.info('If printing did not start, check RawBT app.'), 1200);
-      } catch (e) {
-        alert('Bluetooth print failed: ' + (e.message || e));
-      }
-    }
+  document.getElementById('totalOrders').innerText = orders.length;
+  document.getElementById('totalRevenue').innerText =
+    orders.reduce((s,o)=>s+(o.total||0),0);
 
-    // === DASHBOARD/INSIGHT LOGIC ===
-    const dashboardPeriod = document.getElementById('dashboardPeriod');
-    const dashboardDate = document.getElementById('dashboardDate');
-    dashboardDate.value = new Date().toISOString().slice(0,10);
-    async function renderDashboard() {
-      let d = dashboardDate.value, period = dashboardPeriod.value;
-      let r = await fetch(`/api/dashboard/sales?period=${period}&date=${d}`); let stats = await r.json();
-      document.getElementById('sales-today').textContent = '₹' + (stats.total || 0);
-      document.getElementById('orders-month').textContent = stats.count || 0;
+  document.getElementById('incoming').innerHTML =
+    incoming.map(o=>orderCard(o,true)).join('') || '<p>No orders</p>';
 
-      r = await fetch(`/api/dashboard/peakhour?date=${d}`); let peak = await r.json();
-      document.getElementById('peak-hour').textContent = (peak && peak.hour !== "-") ? `${peak.hour}:00` : '-';
+  document.getElementById('delivered').innerHTML =
+    delivered.map(o=>orderCard(o,false)).join('') || '<p>No delivered orders</p>';
+}
 
-      r = await fetch(`/api/dashboard/topdish?date=${d}`); let dish = await r.json();
-      document.getElementById('top-dish').textContent = dish ? dish._id : '-';
-    }
-    dashboardPeriod.onchange = dashboardDate.onchange = renderDashboard;
-    window.addEventListener('DOMContentLoaded', renderDashboard);
+function orderCard(o,isIncoming){
+  return `
+  <div class="order-card bg-gray-900 border ${isIncoming?'border-amber-400':'border-gray-700'}">
+    <div class="flex justify-between">
+      <div>
+        <span class="order-type-badge order-type-${o.orderType}">${o.orderType}</span>
+        <h3 class="font-bold">${o.customerName}</h3>
+        <p class="text-xs text-gray-400">${new Date(o.createdAt).toLocaleString()}</p>
+        ${o.orderType==='dinein'?`<p>Table: ${o.tableNumber}</p>`:''}
+      </div>
+      <div class="text-right">
+        <div class="font-bold text-amber-200">₹${o.total}</div>
+        <div class="text-xs">${o.mobile||''}</div>
+      </div>
+    </div>
 
-    // === INSIGHT LOGIC ===
-    const compareBy = document.getElementById('compareBy');
-    const compareByLabel = document.getElementById('compareByLabel');
-    const insightType = document.getElementById('insightType');
-    const insightName = document.getElementById('insightName');
-    let myCustomChart = null;
-    insightType.onchange = () => {
-      if(insightType.value === "compare_sales") compareByLabel.style.display = "";
-      else compareByLabel.style.display = "none";
-      insightName.style.display = (insightType.value === "customer_search") ? "" : "none";
-    }
-    async function runInsight() {
-      const type = insightType.value, from = document.getElementById('insightFrom').value,
-      to = document.getElementById('insightTo').value, name = insightName.value, by = compareBy.value || 'day';
-      let html = '';
+    <ul class="order-items mt-3">
+      ${o.items.map(i=>`<li>• ${i.qty} × ${i.name} — ₹${i.price}</li>`).join('')}
+    </ul>
 
-      if(type === "compare_sales") {
-        let salesA, salesB, labelA, labelB;
-        if(by === "day") {
-          salesA = await fetch(`/api/dashboard/sales?period=day&date=${from}`).then(r=>r.json());
-          salesB = await fetch(`/api/dashboard/sales?period=day&date=${to}`).then(r=>r.json());
-          labelA = from || '—'; labelB = to || '—';
-        } else if(by === "week") {
-          salesA = await fetch(`/api/dashboard/sales?period=week&date=${from}`).then(r=>r.json());
-          salesB = await fetch(`/api/dashboard/sales?period=week&date=${to}`).then(r=>r.json());
-          labelA = `Week of ${from || '—'}`; labelB = `Week of ${to || '—'}`;
-        } else if(by === "month") {
-          salesA = await fetch(`/api/dashboard/sales?period=month&date=${from}`).then(r=>r.json());
-          salesB = await fetch(`/api/dashboard/sales?period=month&date=${to}`).then(r=>r.json());
-          labelA = `Month: ${(from || '—').slice(0,7)}`; labelB = `Month: ${(to || '—').slice(0,7)}`;
-        }
-        html = `<div class="mb-6 flex items-center gap-10">
-          <div class="bg-yellow-200 rounded-xl p-4 shadow insight-big-value">${labelA}<br>₹${salesA.total||0}<br>
-            <span class="insight-mid-value">Orders: ${salesA.count||0}</span></div>
-          <div class="bg-yellow-200 rounded-xl p-4 shadow insight-big-value">${labelB}<br>₹${salesB.total||0}<br>
-            <span class="insight-mid-value">Orders: ${salesB.count||0}</span></div>
-        </div>
-        <div class="bg-white rounded-xl py-5 px-2 mb-4 shadow">
-          <canvas id="myChart" width="400" height="180"></canvas>
-        </div>`;
-        document.getElementById('insightResult').innerHTML = html;
-        setTimeout(()=>{ renderChart([labelA,labelB], [salesA.total,salesB.total], 'Sales Comparison', 'bar'); },0);
-        return;
-      }
-      if(type === "repeat_customers") {
-        const data = await fetch(`/api/dashboard/repeatcustomers?from=${from}&to=${to}`).then(r=>r.json());
-        html = `<table class="insight-result-table table-auto w-full text-base font-semibold"><thead><tr><th>Name</th><th>Orders</th></tr></thead><tbody>`+
-          data.map(c=>`<tr><td>${c._id}</td><td>${c.orders}</td></tr>`).join('')+`</tbody></table>`;
-      } else if(type === "best_dish") {
-        const dish = await fetch(`/api/dashboard/topdish?from=${from}&to=${to}`).then(r=>r.json());
-        html = dish
-          ? `<div class="text-2xl font-bold text-yellow-800 mb-2">${dish._id}</div><div class="text-lg">Total Orders: <b>${dish.count}</b></div>`
-          : '<div class="text-base text-red-700">No data found in this time frame</div>';
-      } else if(type === "customer_search" && name) {
-        const data = await fetch(`/api/dashboard/repeatcustomers?from=${from}&to=${to}&name=${encodeURIComponent(name)}`).then(r=>r.json());
-        html = data && data.length
-          ? `<div class="text-2xl text-yellow-900 font-bold mb-2">${name} visited <span class="font-extrabold text-yellow-900">${data[0].orders}</span> times</div>`
-          : `<div class="text-base text-red-700">${name} did not visit in this period.</div>`;
-      } else {
-        html = '<div class="text-base text-red-700">Choose an insight and date(s).</div>';
-      }
-      document.getElementById('insightResult').innerHTML = html;
-    }
-    function renderChart(labels, data, chartLabel, chartType = 'bar') {
-      const el = document.getElementById('myChart');
-      if (!el) return;
-      const ctx = el.getContext('2d');
-      if (myCustomChart) myCustomChart.destroy();
-      myCustomChart = new Chart(ctx, {
-        type: chartType,
-        data: {
-          labels: labels,
-          datasets: [{
-            label: chartLabel,
-            data: data,
-            backgroundColor: 'rgba(251,191,36, 0.7)',
-            borderColor: 'rgba(251,191,36, 1)',
-            borderWidth: 2
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: { y: { beginAtZero: true } }
-        }
-      });
-    }
+    <div class="order-actions mt-3 flex flex-wrap gap-2">
+      ${isIncoming?`
+        <button class="bg-blue-600" onclick="updateStatus('${o._id}','preparing')">Preparing</button>
+        <button class="bg-green-600" onclick="updateStatus('${o._id}','delivered')">Delivered</button>
+        <button class="bg-red-600" onclick="deleteOrder('${o._id}')">Delete</button>
+      `:''}
+      <button class="bg-teal-400 text-black font-bold"
+        onclick='bluetoothPrint(${JSON.stringify(o)})'>
+        Print
+      </button>
+    </div>
+  </div>`;
+}
 
-    // --- Live updates with Socket.io ---
-    datePicker.onchange = () => fetchOrders(datePicker.value);
-    socket.on('newOrder', (o) => {
-      if ((o.createdAt || '').slice(0,10) === datePicker.value) fetchOrders(datePicker.value);
-    });
-    socket.on('orderUpdated', (o) => { fetchOrders(datePicker.value); });
-    fetchOrders(datePicker.value);
+/* ================= API ACTIONS ================= */
+async function updateStatus(id,status){
+  await fetch('/api/orders/'+id+'/status',{
+    method:'PATCH',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({status})
+  });
+}
+async function deleteOrder(id){
+  if(!confirm('Delete order?'))return;
+  await fetch('/api/orders/'+id+'/status',{
+    method:'PATCH',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({status:'deleted'})
+  });
+}
 
-  </script>
+/* ================= LIVE ================= */
+datePicker.onchange=()=>fetchOrders(datePicker.value);
+socket.on('newOrder',()=>fetchOrders(datePicker.value));
+socket.on('orderUpdated',()=>fetchOrders(datePicker.value));
+fetchOrders(datePicker.value);
+</script>
+
 </body>
 </html>
-
