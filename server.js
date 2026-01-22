@@ -11,10 +11,13 @@ const io = socketio(server);
 const PORT = process.env.PORT || 3000;
 
 // --- MongoDB connection ---
-mongoose.connect('mongodb+srv://architmagic_db_user:v4TYaSl8O5zH4h60@mughlai.ttewbke.mongodb.net/mughlai?retryWrites=true&w=majority', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-});
+mongoose.connect(
+  'mongodb+srv://architmagic_db_user:v4TYaSl8O5zH4h60@mughlai.ttewbke.mongodb.net/mughlai?retryWrites=true&w=majority',
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  }
+);
 mongoose.connection.on('connected', () => console.log('✅ Connected to MongoDB'));
 mongoose.connection.on('error', (err) => console.error('❌ MongoDB Error:', err));
 
@@ -41,20 +44,20 @@ app.get('/menu.json', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/menu.json'));
 });
 
-// --- Utility: Date boundaries in local time ---
-function getDateBounds(dateStr) {
-  const date = new Date(dateStr);
-  const start = new Date(date.setHours(0, 0, 0, 0));
-  const end = new Date(date.setHours(23, 59, 59, 999));
+// --- Utility: IST date boundaries (match Titishya style) ---
+function getISTDateBounds(dateStr) {
+  const date = dateStr || new Date().toISOString().slice(0, 10);
+  const start = new Date(Date.parse(date + 'T00:00:00+05:30'));
+  const end   = new Date(Date.parse(date + 'T23:59:59+05:30'));
   return { start, end };
 }
 
 // ---------------- ORDERS APIs ----------------
 
-// Get orders for a given date
+// Get orders for a given date (IST)
 app.get('/api/orders', async (req, res) => {
   const date = req.query.date || new Date().toISOString().slice(0, 10);
-  const { start, end } = getDateBounds(date);
+  const { start, end } = getISTDateBounds(date);
   const orders = await Order.find({
     createdAt: { $gte: start, $lte: end },
     status: { $ne: 'deleted' }
@@ -96,21 +99,24 @@ app.patch('/api/orders/:id/status', async (req, res) => {
 
 // ---------------- DASHBOARD APIs ----------------
 
-// Total sales for a day/week/month
+// Total sales for a day/week/month (IST based)
 app.get('/api/dashboard/sales', async (req, res) => {
   const period = req.query.period || 'day';
   const date = req.query.date || new Date().toISOString().slice(0, 10);
 
   let start, end;
   if (period === 'day') {
-    ({ start, end } = getDateBounds(date));
+    ({ start, end } = getISTDateBounds(date));
   } else if (period === 'week') {
-    const d = new Date(date);
+    // Use IST day as base, then go back to Sunday-like start
+    const { start: dayStart } = getISTDateBounds(date);
+    const d = new Date(dayStart);
     const first = new Date(d.setDate(d.getDate() - d.getDay()));
     start = new Date(first.setHours(0, 0, 0, 0));
     end = new Date(new Date(start).setDate(start.getDate() + 7));
   } else if (period === 'month') {
-    const d = new Date(date);
+    const { start: dayStart } = getISTDateBounds(date);
+    const d = new Date(dayStart);
     start = new Date(d.getFullYear(), d.getMonth(), 1);
     end = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
   }
@@ -123,10 +129,10 @@ app.get('/api/dashboard/sales', async (req, res) => {
   res.json({ total, count: orders.length });
 });
 
-// Peak Hour
+// Peak Hour (IST)
 app.get('/api/dashboard/peakhour', async (req, res) => {
   const date = req.query.date || new Date().toISOString().slice(0, 10);
-  const { start, end } = getDateBounds(date);
+  const { start, end } = getISTDateBounds(date);
   const orders = await Order.find({ createdAt: { $gte: start, $lte: end }, status: { $ne: 'deleted' } });
   const hourly = {};
   orders.forEach(o => {
@@ -140,15 +146,16 @@ app.get('/api/dashboard/peakhour', async (req, res) => {
   res.json(peak);
 });
 
-// Most Ordered Dish
+// Most Ordered Dish (IST)
 app.get('/api/dashboard/topdish', async (req, res) => {
   let start, end;
   if (req.query.from && req.query.to) {
-    start = new Date(req.query.from);
-    end = new Date(req.query.to);
+    ({ start, end } = getISTDateBounds(req.query.from));
+    const toBounds = getISTDateBounds(req.query.to);
+    end = toBounds.end;
   } else {
     const date = req.query.date || new Date().toISOString().slice(0, 10);
-    ({ start, end } = getDateBounds(date));
+    ({ start, end } = getISTDateBounds(date));
   }
   const orders = await Order.find({ createdAt: { $gte: start, $lte: end }, status: { $ne: 'deleted' } });
   const countMap = {};
@@ -162,15 +169,16 @@ app.get('/api/dashboard/topdish', async (req, res) => {
   res.json(top ? { _id: top[0], count: top[1] } : null);
 });
 
-// Repeat Customers
+// Repeat Customers (IST)
 app.get('/api/dashboard/repeatcustomers', async (req, res) => {
   let start, end;
   if (req.query.from && req.query.to) {
-    start = new Date(req.query.from);
-    end = new Date(req.query.to);
+    ({ start, end } = getISTDateBounds(req.query.from));
+    const toBounds = getISTDateBounds(req.query.to);
+    end = toBounds.end;
   } else {
     const date = req.query.date || new Date().toISOString().slice(0, 10);
-    ({ start, end } = getDateBounds(date));
+    ({ start, end } = getISTDateBounds(date));
   }
 
   const nameFilter = req.query.name ? { customerName: req.query.name } : {};
@@ -186,7 +194,9 @@ app.get('/api/dashboard/repeatcustomers', async (req, res) => {
     return res.json([{ _id: req.query.name, orders: stats[req.query.name] || 0 }]);
   }
 
-  const sorted = Object.entries(stats).sort((a, b) => b[1] - a[1]).map(([name, count]) => ({ _id: name, orders: count }));
+  const sorted = Object.entries(stats)
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, count]) => ({ _id: name, orders: count }));
   res.json(sorted);
 });
 
@@ -205,4 +215,3 @@ app.get("/health", (req, res) => {
 server.listen(PORT, () => {
   console.log(`🚀 Mughlai Point Server running on http://localhost:${PORT}`);
 });
-
