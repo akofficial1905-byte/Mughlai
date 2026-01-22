@@ -75,7 +75,6 @@
         display:block;
       }
 
-      /* Make date picker row in Orders tab clearly visible and stacked */
       .orders-date-row {
         flex-direction:column;
         align-items:flex-start;
@@ -88,7 +87,6 @@
       }
     }
 
-    /* Simple utility for horizontal scroll tables on very small screens */
     .table-wrapper { overflow-x:auto; }
   </style>
 </head>
@@ -116,9 +114,8 @@
       </button>
     </div>
 
-    <!-- ANALYTICS WRAPPER (Dashboard + Insights) -->
+    <!-- ANALYTICS WRAPPER -->
     <div id="analyticsSection" class="hidden space-y-6">
-
       <!-- DASHBOARD -->
       <section id="dashboard" class="bg-white rounded-xl p-4 md:p-6 shadow-xl border border-gray-200 text-gray-900">
         <div class="flex flex-wrap-row justify-between items-center gap-3 mb-4">
@@ -246,27 +243,9 @@
   <script>
     const socket = io();
 
-    // --- Local date helpers (for pickers/UI only) ---
-    function formatLocalDateYYYYMMDD(date) {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
-
-    function getTodayLocalISO() {
-      return formatLocalDateYYYYMMDD(new Date());
-    }
-
-    // NEW: Use server's own date part from createdAt (no timezone reinterpretation)
-    function getOrderDateString(order) {
-      if (order.date) return String(order.date).slice(0, 10);
-      if (order.createdAt) return String(order.createdAt).slice(0, 10);
-      return '';
-    }
-
+    // Use SAME logic as old working file: UTC ISO date for picker
     const datePicker = document.getElementById('datePicker');
-    datePicker.value = getTodayLocalISO();
+    datePicker.value = new Date().toISOString().slice(0,10);
 
     // Tabs
     const tabOrders = document.getElementById('tabOrders');
@@ -380,7 +359,7 @@
       });
     }
 
-    // ============ BLUETOOTH PRINT (RAWBT) ============
+    // BLUETOOTH PRINT (unchanged)
     const LINE_WIDTH = 32;
     function line(char='-') { return char.repeat(LINE_WIDTH) + '\n'; }
     function padRight(str, len) { str = (str ?? '').toString(); return str.length >= len ? str.slice(0, len) : str + ' '.repeat(len - str.length); }
@@ -417,16 +396,16 @@
       try {
         const receipt = buildReceipt(order);
         const uri = 'rawbt:' + encodeURIComponent(receipt);
-        window.location.href = uri; // RawBT handles the Bluetooth print on Android browsers
+        window.location.href = uri;
       } catch (e) {
         alert('Bluetooth print failed: ' + (e.message || e));
       }
     }
 
-    // === DASHBOARD/INSIGHT LOGIC ===
+    // DASHBOARD
     const dashboardPeriod = document.getElementById('dashboardPeriod');
     const dashboardDate = document.getElementById('dashboardDate');
-    dashboardDate.value = getTodayLocalISO();
+    dashboardDate.value = new Date().toISOString().slice(0,10);
 
     async function renderDashboard() {
       let d = dashboardDate.value, period = dashboardPeriod.value;
@@ -442,7 +421,7 @@
     }
     dashboardPeriod.onchange = dashboardDate.onchange = renderDashboard;
 
-    // === INSIGHT LOGIC ===
+    // INSIGHTS
     const compareBy = document.getElementById('compareBy');
     const compareByLabel = document.getElementById('compareByLabel');
     const insightType = document.getElementById('insightType');
@@ -542,12 +521,11 @@
       });
     }
 
-    // --- Live updates with Socket.io ---
+    // Live updates: use SAME condition as old working file
     datePicker.onchange = () => fetchOrders(datePicker.value);
 
     socket.on('newOrder', (o) => {
-      // Use server's own "day" (first 10 chars of createdAt / date)
-      if (getOrderDateString(o) === datePicker.value) {
+      if ((o.createdAt || '').slice(0,10) === datePicker.value) {
         fetchOrders(datePicker.value);
       }
     });
@@ -558,10 +536,7 @@
     // Initial load
     window.addEventListener('DOMContentLoaded', () => {
       setTab('orders');
-      const today = getTodayLocalISO();
-      datePicker.value = today;
-      dashboardDate.value = today;
-      fetchOrders(today);
+      fetchOrders(datePicker.value);
       renderDashboard();
     });
   </script>
