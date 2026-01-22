@@ -8,134 +8,261 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="/socket.io/socket.io.js"></script>
   <style>
-    .order-type-badge { font-size:12px; font-weight:bold; border-radius:7px; padding:2px 8px; margin-right:6px }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .order-type-badge { font-size:11px; font-weight:600; border-radius:999px; padding:2px 10px; margin-right:6px }
     .order-type-dinein { background:#fbbf24; color:#222; }
     .order-type-takeaway { background:#34d399; color:#222; }
     .order-type-delivery { background:#60a5fa; color:#fff; }
-    .insight-label { color: #b45309; font-weight: bold; font-size: 1.18rem; letter-spacing: .8px; }
+
+    .insight-label { color:#b45309; font-weight:600; font-size:0.95rem; letter-spacing:.3px; }
     .insight-select, .insight-input, #dashboardDate, #dashboardPeriod {
-      font-weight: bold; font-size: 1.13rem; background: #fffbe8; color: #7c4700; border: 2px solid #fbbf24; border-radius: 8px; padding: 7px 16px; margin: 0 7px 0 0;
+      font-weight:600; font-size:0.9rem; background:#fffbe8; color:#7c4700;
+      border:2px solid #fbbf24; border-radius:999px; padding:6px 14px; margin:0 6px 6px 0;
     }
-    .insight-box { background: #fffbe8; border: 3px solid #fbbf24; border-radius: 16px; padding: 24px; margin-top: 16px; color: #4c1d06; font-size: 1.13rem; }
-    .insight-result-table th, .insight-result-table td { border-bottom: 2px solid #fbbf24; padding: 8px 12px!important; font-size:1.12em; }
-    .insight-big-value { font-size:2.0em;font-weight:800; color:#a16207; }
-    .insight-mid-value { font-size:1.15em;font-weight:700;}
-    .dashboard-label { font-size: 1.14rem; font-weight: bold; color: #a37000; padding-right:8px;}
+    .insight-box {
+      background:#fffbe8; border:3px solid #fbbf24; border-radius:18px;
+      padding:18px; margin-top:10px; color:#4c1d06; font-size:0.95rem;
+    }
+    .insight-result-table { width:100%; border-collapse:collapse; font-size:0.9rem; }
+    .insight-result-table th, .insight-result-table td {
+      border-bottom:2px solid #fbbf24; padding:8px 10px; text-align:left;
+    }
+    .insight-big-value { font-size:1.25rem; font-weight:800; color:#a16207; line-height:1.4; }
+    .insight-mid-value { font-size:0.95rem; font-weight:700; }
+    .dashboard-label { font-size:0.9rem; font-weight:700; color:#a37000; padding-right:8px; }
+
+    .tab-btn {
+      padding:0.4rem 1rem;
+      font-size:0.8rem;
+      font-weight:600;
+      border-radius:999px;
+      border:1px solid rgb(251,191,36);
+      color:rgb(252,211,77);
+      background-color:rgb(15,23,42);
+    }
+    .tab-btn-active {
+      background-color:rgb(251,191,36);
+      color:black;
+      box-shadow:0 0 0 1px rgba(0,0,0,0.1);
+    }
+
+    .order-card-title { font-size:0.95rem; font-weight:700; }
+    .order-card-meta { font-size:0.75rem; }
+    .order-card-items { font-size:0.8rem; }
+
     @media (max-width:700px){
-      .grid-cols-2, .md\:grid-cols-2 { grid-template-columns: 1fr !important; }
-      .flex { flex-direction: column !important; }
-      .max-w-7xl, .max-w-4xl { max-width: 99vw !important;}
-      .p-6, .py-10, .px-8, .mb-8, .my-10 { padding:12px !important; margin:6px !important; }
+      .max-w-7xl { max-width:100vw !important; padding:10px !important; }
+      header h1 { font-size:1.4rem; }
+      header p { font-size:0.7rem; }
+      .p-6, .py-10, .px-8, .mb-8, .my-10 { padding:10px !important; margin:8px 0 !important; }
+      .grid { gap:10px !important; }
+      .dashboard-label { font-size:0.8rem; }
+
+      .flex-wrap-row {
+        flex-direction:column;
+        align-items:flex-start;
+        gap:8px;
+      }
+
+      .insight-select, .insight-input, #dashboardDate, #dashboardPeriod {
+        width:100%;
+        max-width:none;
+        display:block;
+      }
+
+      .orders-date-row {
+        flex-direction:column;
+        align-items:flex-start;
+      }
+      .orders-date-row > div {
+        width:100%;
+      }
+      #datePicker {
+        width:100%;
+      }
     }
+
+    .table-wrapper { overflow-x:auto; }
   </style>
 </head>
 <body class="bg-gradient-to-b from-slate-900 via-gray-900 to-black text-gray-100 min-h-screen">
   <div class="max-w-7xl mx-auto p-6">
-    <header class="flex justify-between items-center mb-6">
+    <header class="flex justify-between items-center mb-4 gap-2">
       <div>
-        <h1 class="text-4xl font-extrabold text-amber-300">Mughlai Point — Manager</h1>
-        <p class="text-sm text-gray-400">
+        <h1 class="text-2xl md:text-4xl font-extrabold text-amber-300">Mughlai Point — Manager</h1>
+        <p class="text-[11px] md:text-xs text-gray-400">
           Contact: <b>+91-XXXXXXXXXX</b> • Daily live orders, dashboards, print
         </p>
       </div>
-      <a href="/index.html" class="px-4 py-2 bg-gray-800 rounded text-gray-200">Customer View</a>
+      <a href="/index.html" class="px-3 py-1.5 md:px-4 md:py-2 bg-gray-800 rounded-full text-[11px] md:text-sm text-gray-200">
+        Customer View
+      </a>
     </header>
 
-    <!-- DASHBOARD -->
-    <section id="dashboard" class="bg-white rounded-xl p-6 mb-8 shadow-xl border border-gray-300">
-      <div class="flex flex-wrap gap-4 mb-4 items-center">
-        <span class="dashboard-label">View:</span>
-        <select id="dashboardPeriod" class="insight-select">
-          <option value="day">Day</option>
-          <option value="week">Week</option>
-          <option value="month">Month</option>
-        </select>
-        <span class="dashboard-label">Date:</span>
-        <input id="dashboardDate" type="date" class="insight-input" />
-      </div>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
-        <div class="bg-amber-50 border border-yellow-200 rounded-lg p-4 text-center">
-          <div class="text-lg font-bold text-amber-700" id="sales-today">₹0</div>
-          <div class="text-xs mt-2 text-gray-700">Sales</div>
-        </div>
-        <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-          <div class="text-lg font-bold text-green-700" id="orders-month">0</div>
-          <div class="text-xs mt-2 text-gray-700">Orders</div>
-        </div>
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-          <div class="text-lg font-bold text-blue-700" id="peak-hour">-</div>
-          <div class="text-xs mt-2 text-gray-700">Peak Hour</div>
-        </div>
-        <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-          <div class="text-lg font-bold text-red-700" id="top-dish">-</div>
-          <div class="text-xs mt-2 text-gray-700">Most Ordered</div>
-        </div>
-      </div>
-    </section>
+    <!-- Tabs -->
+    <div class="flex gap-2 mb-4">
+      <button id="tabOrders" class="tab-btn tab-btn-active text-xs md:text-sm">
+        Orders
+      </button>
+      <button id="tabAnalytics" class="tab-btn text-xs md:text-sm">
+        Analytics &amp; Insights
+      </button>
+    </div>
 
-    <!-- INSIGHTS -->
-    <section class="bg-white border-4 border-yellow-500 shadow-lg rounded-xl py-10 px-8 my-10">
-      <h3 class="text-2xl font-extrabold text-yellow-800 mb-7 tracking-wider">📊 Detailed Insights & Comparison</h3>
-      <form class="flex flex-wrap gap-7 items-center mb-4">
-        <label class="insight-label">Insight:
-          <select id="insightType" class="insight-select ml-1">
-            <option value="compare_sales">Sales Comparison</option>
-            <option value="repeat_customers">Repeat Customers (in period)</option>
-            <option value="best_dish">Most Ordered Dish (period)</option>
-            <option value="customer_search">Look-up Customer Visits (by name)</option>
-          </select>
-        </label>
-        <label id="compareByLabel" style="display:none;" class="insight-label ml-1">Compare by:
-          <select id="compareBy" class="insight-select ml-1">
-            <option value="day">Day</option>
-            <option value="week">Week</option>
-            <option value="month">Month</option>
-          </select>
-        </label>
-        <label class="insight-label font-extrabold text-amber-700">First Date:
-          <input type="date" id="insightFrom" class="insight-input ml-1"/>
-        </label>
-        <label class="insight-label font-extrabold text-amber-700">Second Date:
-          <input type="date" id="insightTo" class="insight-input ml-1"/>
-        </label>
-        <input id="insightName" class="insight-input ml-1" style="display:none;" placeholder="Customer Name" />
-        <button type="button" class="bg-yellow-400 hover:bg-yellow-500 text-black font-extrabold rounded px-5 py-2 ml-2 shadow-lg text-lg" onclick="runInsight()">Show</button>
-      </form>
-      <div id="insightResult" class="insight-box"></div>
-    </section>
+    <!-- ANALYTICS -->
+    <div id="analyticsSection" class="hidden space-y-6">
+      <section id="dashboard" class="bg-white rounded-xl p-4 md:p-6 shadow-xl border border-gray-200 text-gray-900">
+        <div class="flex flex-wrap-row justify-between items-center gap-3 mb-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="dashboard-label">View:</span>
+            <select id="dashboardPeriod" class="insight-select">
+              <option value="day">Day</option>
+              <option value="week">Week</option>
+              <option value="month">Month</option>
+            </select>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="dashboard-label">Date:</span>
+            <input id="dashboardDate" type="date" class="insight-input" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-2">
+          <div class="bg-amber-50 border border-yellow-200 rounded-lg px-3 py-3 text-center">
+            <div class="text-base md:text-lg font-bold text-amber-700" id="sales-today">₹0</div>
+            <div class="text-[11px] mt-1 text-gray-700">Sales</div>
+          </div>
+          <div class="bg-green-50 border border-green-200 rounded-lg px-3 py-3 text-center">
+            <div class="text-base md:text-lg font-bold text-green-700" id="orders-month">0</div>
+            <div class="text-[11px] mt-1 text-gray-700">Orders</div>
+          </div>
+          <div class="bg-blue-50 border border-blue-200 rounded-lg px-3 py-3 text-center">
+            <div class="text-base md:text-lg font-bold text-blue-700" id="peak-hour">-</div>
+            <div class="text-[11px] mt-1 text-gray-700">Peak Hour</div>
+          </div>
+          <div class="bg-red-50 border border-red-200 rounded-lg px-3 py-3 text-center">
+            <div class="text-base md:text-lg font-bold text-red-700" id="top-dish">-</div>
+            <div class="text-[11px] mt-1 text-gray-700">Most Ordered</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="bg-white border-4 border-yellow-500 shadow-lg rounded-xl py-6 px-4 md:py-8 md:px-6 text-gray-900">
+        <h3 class="text-lg md:text-2xl font-extrabold text-yellow-800 mb-4 md:mb-6 tracking-wide">
+          📊 Detailed Insights &amp; Comparison
+        </h3>
+
+        <form class="flex flex-wrap gap-3 md:gap-5 items-center mb-3 text-sm">
+          <div class="flex flex-col gap-1">
+            <label class="insight-label">Insight:</label>
+            <select id="insightType" class="insight-select w-full">
+              <option value="compare_sales">Sales Comparison</option>
+              <option value="repeat_customers">Repeat Customers (in period)</option>
+              <option value="best_dish">Most Ordered Dish (period)</option>
+              <option value="customer_search">Look-up Customer Visits (by name)</option>
+            </select>
+          </div>
+
+          <div id="compareByLabel" style="display:none;" class="flex flex-col gap-1">
+            <label class="insight-label">Compare by:</label>
+            <select id="compareBy" class="insight-select w-full">
+              <option value="day">Day</option>
+              <option value="week">Week</option>
+              <option value="month">Month</option>
+            </select>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="insight-label font-extrabold text-amber-700">First Date:</label>
+            <input type="date" id="insightFrom" class="insight-input w-full"/>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="insight-label font-extrabold text-amber-700">Second Date:</label>
+            <input type="date" id="insightTo" class="insight-input w-full"/>
+          </div>
+
+          <div class="flex flex-col gap-1 w-full md:w-auto">
+            <input id="insightName" class="insight-input w-full" style="display:none;" placeholder="Customer Name" />
+          </div>
+
+          <button type="button"
+            class="bg-yellow-400 hover:bg-yellow-500 text-black font-extrabold rounded-full px-4 py-2 ml-1 shadow-md text-sm"
+            onclick="runInsight()">
+            Show
+          </button>
+        </form>
+
+        <div id="insightResult" class="insight-box text-sm"></div>
+      </section>
+    </div>
 
     <!-- ORDERS -->
-    <div class="bg-gray-800 rounded-2xl p-4 mb-6 flex justify-between items-center">
-      <div>
-        <label class="text-sm text-yellow-300 font-bold mr-2">Select Date:</label>
-        <input id="datePicker" type="date" class="bg-yellow-50 border border-yellow-400 p-2 font-bold rounded" />
-      </div>
-      <div class="flex flex-col text-right gap-2">
-        <div class="text-sm text-gray-400">Total Orders: <span id="totalOrders" class="font-bold text-amber-300">0</span></div>
-        <div class="text-sm text-gray-400">Revenue: ₹<span id="totalRevenue" class="font-bold text-green-300">0</span></div>
-        <div class="flex gap-3">
-          <span class="order-type-badge order-type-dinein">Dine-in: <span id="countDinein">0</span></span>
-          <span class="order-type-badge order-type-takeaway">Takeaway: <span id="countTakeaway">0</span></span>
-          <span class="order-type-badge order-type-delivery">Delivery: <span id="countDelivery">0</span></span>
+    <div id="ordersSection" class="space-y-4 mt-4">
+      <div class="bg-gray-800 rounded-2xl p-3 md:p-4 flex orders-date-row md:flex-row md:justify-between md:items-center gap-3">
+        <div class="flex items-center gap-2">
+          <label class="text-xs md:text-sm text-yellow-300 font-bold">Select Date:</label>
+          <input
+            id="datePicker"
+            type="date"
+            class="bg-yellow-50 border border-yellow-400 px-2 py-1.5 text-xs md:text-sm font-semibold rounded w-full md:w-auto"
+          />
+        </div>
+        <div class="flex flex-col text-right gap-1 text-xs md:text-sm w-full md:w-auto">
+          <div class="text-gray-400">Total Orders: <span id="totalOrders" class="font-bold text-amber-300">0</span></div>
+          <div class="text-gray-400">Revenue: ₹<span id="totalRevenue" class="font-bold text-green-300">0</span></div>
+          <div class="flex flex-wrap justify-end gap-2 mt-1">
+            <span class="order-type-badge order-type-dinein">Dine-in: <span id="countDinein">0</span></span>
+            <span class="order-type-badge order-type-takeaway">Takeaway: <span id="countTakeaway">0</span></span>
+            <span class="order-type-badge order-type-delivery">Delivery: <span id="countDelivery">0</span></span>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <section>
-        <h2 class="text-xl font-semibold text-yellow-200 mb-4">🟡 Upcoming / Incoming Orders</h2>
-        <div id="incoming" class="space-y-4"></div>
-      </section>
-      <section>
-        <h2 class="text-xl font-semibold text-green-300 mb-4">🟢 Delivered Orders</h2>
-        <div id="delivered" class="space-y-4"></div>
-      </section>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
+        <section>
+          <h2 class="text-base md:text-xl font-semibold text-yellow-200 mb-2 md:mb-3">🟡 Upcoming / Incoming Orders</h2>
+          <div id="incoming" class="space-y-3"></div>
+        </section>
+        <section>
+          <h2 class="text-base md:text-xl font-semibold text-green-300 mb-2 md:mb-3">🟢 Delivered Orders</h2>
+          <div id="delivered" class="space-y-3"></div>
+        </section>
+      </div>
     </div>
   </div>
+
   <script>
     const socket = io();
+
+    // Use SAME logic as Titishya: ISO UTC date string
     const datePicker = document.getElementById('datePicker');
     datePicker.value = new Date().toISOString().slice(0,10);
+
+    // Tabs
+    const tabOrders = document.getElementById('tabOrders');
+    const tabAnalytics = document.getElementById('tabAnalytics');
+    const ordersSection = document.getElementById('ordersSection');
+    const analyticsSection = document.getElementById('analyticsSection');
+
+    function setTab(active) {
+      if (active === 'orders') {
+        ordersSection.classList.remove('hidden');
+        analyticsSection.classList.add('hidden');
+        tabOrders.classList.add('tab-btn-active');
+        tabAnalytics.classList.remove('tab-btn-active');
+      } else {
+        analyticsSection.classList.remove('hidden');
+        ordersSection.classList.add('hidden');
+        tabAnalytics.classList.add('tab-btn-active');
+        tabOrders.classList.remove('tab-btn-active');
+      }
+    }
+    tabOrders.onclick = () => setTab('orders');
+    tabAnalytics.onclick = () => setTab('analytics');
 
     async function fetchOrders(date) {
       const res = await fetch('/api/orders?date=' + date);
@@ -153,46 +280,54 @@
       document.getElementById('countTakeaway').innerText = takeaway.length;
       document.getElementById('countDelivery').innerText = delivery.length;
 
-      const incoming = orders.filter(o => (o.status || '').trim().toLowerCase() !== 'delivered' && (o.status || '').trim().toLowerCase() !== 'deleted');
-      const delivered = orders.filter(o => (o.status || '').trim().toLowerCase() === 'delivered');
+      const incoming = orders.filter(o =>
+        (o.status || '').trim().toLowerCase() !== 'delivered' &&
+        (o.status || '').trim().toLowerCase() !== 'deleted'
+      );
+      const delivered = orders.filter(o =>
+        (o.status || '').trim().toLowerCase() === 'delivered'
+      );
 
       document.getElementById('incoming').innerHTML = incoming.length
         ? incoming.map(o => cardHtml(o, true)).join('')
-        : '<div class="text-yellow-300 font-semibold text-lg py-8 text-center">No upcoming/incoming orders for selected date.</div>';
+        : '<div class="text-yellow-300 font-semibold text-sm md:text-lg py-6 text-center">No upcoming/incoming orders for selected date.</div>';
       document.getElementById('delivered').innerHTML = delivered.length
         ? delivered.map(o => cardHtml(o, false)).join('')
-        : '<div class="text-green-200 font-semibold text-lg py-8 text-center">No delivered orders yet.</div>';
+        : '<div class="text-green-200 font-semibold text-sm md:text-lg py-6 text-center">No delivered orders yet.</div>';
     }
 
     function cardHtml(o, isIncoming) {
       return `
-        <div class="bg-${isIncoming ? 'gray-900 border border-amber-400' : 'gray-800 border border-gray-700'} rounded-lg p-4 shadow">
-          <div class="flex justify-between items-start">
-            <div>
-              <span class="order-type-badge order-type-${o.orderType}">${o.orderType.charAt(0).toUpperCase() + o.orderType.slice(1)}</span>
-              <span class="font-bold text-lg">${o.customerName || '-'}</span>
-              <div class="text-xs text-gray-400">${new Date(o.createdAt).toLocaleString()}</div>
-              <div class="text-xs text-gray-400 mt-1">${renderOrderDetails(o)}</div>
+        <div class="bg-${isIncoming ? 'gray-900 border border-amber-400' : 'gray-800 border border-gray-700'} rounded-xl p-3 md:p-4 shadow-sm">
+          <div class="flex justify-between items-start gap-2">
+            <div class="w-2/3">
+              <div class="flex items-center flex-wrap gap-1 mb-1">
+                <span class="order-type-badge order-type-${o.orderType}">${o.orderType.charAt(0).toUpperCase() + o.orderType.slice(1)}</span>
+                <span class="order-card-title">${o.customerName || '-'}</span>
+              </div>
+              <div class="order-card-meta text-gray-400">${new Date(o.createdAt).toLocaleString()}</div>
+              <div class="order-card-meta text-gray-400 mt-0.5">${renderOrderDetails(o)}</div>
             </div>
-            <div class="text-right">
-              <div class="font-semibold ${isIncoming ? 'text-amber-200' : 'text-green-300'}">₹${o.total}</div>
-              <div class="text-xs text-gray-400">${o.mobile ? "📱 " + o.mobile : ""}</div>
+            <div class="text-right w-1/3">
+              <div class="font-semibold text-sm ${isIncoming ? 'text-amber-200' : 'text-green-300'}">₹${o.total}</div>
+              <div class="order-card-meta text-gray-400 mt-1">${o.mobile ? "📱 " + o.mobile : ""}</div>
             </div>
           </div>
-          <ul class="mt-3 text-sm ${isIncoming ? 'text-gray-200' : 'text-gray-300'}">
+          <ul class="mt-2 order-card-items ${isIncoming ? 'text-gray-200' : 'text-gray-300'} leading-snug">
             ${o.items.map(it=>`<li>• ${it.qty} × ${formatDisplayName(it)} — ₹${it.price}</li>`).join('')}
           </ul>
           <div class="mt-3 flex flex-wrap gap-2">
             ${isIncoming ? `
-              <button class="card-btn px-3 py-1 bg-blue-600 rounded" onclick="updateStatus('${o._id}','preparing')">Preparing</button>
-              <button class="card-btn px-3 py-1 bg-green-600 rounded" onclick="updateStatus('${o._id}','delivered')">Delivered</button>
-              <button class="card-btn px-3 py-1 bg-red-600 rounded" onclick="deleteOrder('${o._id}')">Delete</button>
+              <button class="card-btn px-3 py-1 text-xs bg-blue-600 rounded-full" onclick="updateStatus('${o._id}','preparing')">Preparing</button>
+              <button class="card-btn px-3 py-1 text-xs bg-green-600 rounded-full" onclick="updateStatus('${o._id}','delivered')">Delivered</button>
+              <button class="card-btn px-3 py-1 text-xs bg-red-600 rounded-full" onclick="deleteOrder('${o._id}')">Delete</button>
             ` : ``}
-            <button class="card-btn px-3 py-1 bg-teal-400 text-black rounded font-bold" onclick='bluetoothPrint(${JSON.stringify(o)})'>Bluetooth Print</button>
+            <button class="card-btn px-3 py-1 text-xs bg-teal-400 text-black rounded-full font-bold" onclick='bluetoothPrint(${JSON.stringify(o)})'>Bluetooth Print</button>
           </div>
         </div>
       `;
     }
+
     function renderOrderDetails(o) {
       if (o.orderType === 'dinein') return `Table: ${o.tableNumber || '—'}`;
       else if (o.orderType === 'takeaway' || o.orderType === 'delivery') return `Address: ${o.address || '—'}`;
@@ -219,7 +354,7 @@
       });
     }
 
-    // ============ BLUETOOTH PRINT ============
+    // BLUETOOTH PRINT (same as before)
     const LINE_WIDTH = 32;
     function line(char='-') { return char.repeat(LINE_WIDTH) + '\n'; }
     function padRight(str, len) { str = (str ?? '').toString(); return str.length >= len ? str.slice(0, len) : str + ' '.repeat(len - str.length); }
@@ -257,16 +392,16 @@
         const receipt = buildReceipt(order);
         const uri = 'rawbt:' + encodeURIComponent(receipt);
         window.location.href = uri;
-        setTimeout(() => console.info('If printing did not start, check RawBT app.'), 1200);
       } catch (e) {
         alert('Bluetooth print failed: ' + (e.message || e));
       }
     }
 
-    // === DASHBOARD/INSIGHT LOGIC ===
+    // DASHBOARD
     const dashboardPeriod = document.getElementById('dashboardPeriod');
     const dashboardDate = document.getElementById('dashboardDate');
     dashboardDate.value = new Date().toISOString().slice(0,10);
+
     async function renderDashboard() {
       let d = dashboardDate.value, period = dashboardPeriod.value;
       let r = await fetch(`/api/dashboard/sales?period=${period}&date=${d}`); let stats = await r.json();
@@ -280,22 +415,26 @@
       document.getElementById('top-dish').textContent = dish ? dish._id : '-';
     }
     dashboardPeriod.onchange = dashboardDate.onchange = renderDashboard;
-    window.addEventListener('DOMContentLoaded', renderDashboard);
 
-    // === INSIGHT LOGIC ===
+    // INSIGHTS
     const compareBy = document.getElementById('compareBy');
     const compareByLabel = document.getElementById('compareByLabel');
     const insightType = document.getElementById('insightType');
     const insightName = document.getElementById('insightName');
     let myCustomChart = null;
+
     insightType.onchange = () => {
       if(insightType.value === "compare_sales") compareByLabel.style.display = "";
       else compareByLabel.style.display = "none";
       insightName.style.display = (insightType.value === "customer_search") ? "" : "none";
     }
+
     async function runInsight() {
-      const type = insightType.value, from = document.getElementById('insightFrom').value,
-      to = document.getElementById('insightTo').value, name = insightName.value, by = compareBy.value || 'day';
+      const type = insightType.value,
+        from = document.getElementById('insightFrom').value,
+        to = document.getElementById('insightTo').value,
+        name = insightName.value,
+        by = compareBy.value || 'day';
       let html = '';
 
       if(type === "compare_sales") {
@@ -313,38 +452,45 @@
           salesB = await fetch(`/api/dashboard/sales?period=month&date=${to}`).then(r=>r.json());
           labelA = `Month: ${(from || '—').slice(0,7)}`; labelB = `Month: ${(to || '—').slice(0,7)}`;
         }
-        html = `<div class="mb-6 flex items-center gap-10">
-          <div class="bg-yellow-200 rounded-xl p-4 shadow insight-big-value">${labelA}<br>₹${salesA.total||0}<br>
-            <span class="insight-mid-value">Orders: ${salesA.count||0}</span></div>
-          <div class="bg-yellow-200 rounded-xl p-4 shadow insight-big-value">${labelB}<br>₹${salesB.total||0}<br>
-            <span class="insight-mid-value">Orders: ${salesB.count||0}</span></div>
-        </div>
-        <div class="bg-white rounded-xl py-5 px-2 mb-4 shadow">
-          <canvas id="myChart" width="400" height="180"></canvas>
-        </div>`;
+        html = `
+          <div class="mb-4 flex flex-col md:flex-row items-stretch md:items-center gap-3 md:gap-6">
+            <div class="flex-1 bg-yellow-200 rounded-xl p-3 md:p-4 shadow insight-big-value text-center">
+              ${labelA}<br>₹${salesA.total||0}<br>
+              <span class="insight-mid-value">Orders: ${salesA.count||0}</span>
+            </div>
+            <div class="flex-1 bg-yellow-200 rounded-xl p-3 md:p-4 shadow insight-big-value text-center">
+              ${labelB}<br>₹${salesB.total||0}<br>
+              <span class="insight-mid-value">Orders: ${salesB.count||0}</span>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl py-4 px-2 mb-2 shadow table-wrapper">
+            <canvas id="myChart" height="180"></canvas>
+          </div>`;
         document.getElementById('insightResult').innerHTML = html;
         setTimeout(()=>{ renderChart([labelA,labelB], [salesA.total,salesB.total], 'Sales Comparison', 'bar'); },0);
         return;
       }
+
       if(type === "repeat_customers") {
         const data = await fetch(`/api/dashboard/repeatcustomers?from=${from}&to=${to}`).then(r=>r.json());
-        html = `<table class="insight-result-table table-auto w-full text-base font-semibold"><thead><tr><th>Name</th><th>Orders</th></tr></thead><tbody>`+
-          data.map(c=>`<tr><td>${c._id}</td><td>${c.orders}</td></tr>`).join('')+`</tbody></table>`;
+        html = `<div class="table-wrapper"><table class="insight-result-table"><thead><tr><th>Name</th><th>Orders</th></tr></thead><tbody>`+
+          data.map(c=>`<tr><td>${c._id}</td><td>${c.orders}</td></tr>`).join('')+`</tbody></table></div>`;
       } else if(type === "best_dish") {
         const dish = await fetch(`/api/dashboard/topdish?from=${from}&to=${to}`).then(r=>r.json());
         html = dish
-          ? `<div class="text-2xl font-bold text-yellow-800 mb-2">${dish._id}</div><div class="text-lg">Total Orders: <b>${dish.count}</b></div>`
-          : '<div class="text-base text-red-700">No data found in this time frame</div>';
+          ? `<div class="text-xl md:text-2xl font-bold text-yellow-800 mb-1">${dish._id}</div><div class="text-sm md:text-lg">Total Orders: <b>${dish.count}</b></div>`
+          : '<div class="text-sm text-red-700">No data found in this time frame</div>';
       } else if(type === "customer_search" && name) {
         const data = await fetch(`/api/dashboard/repeatcustomers?from=${from}&to=${to}&name=${encodeURIComponent(name)}`).then(r=>r.json());
         html = data && data.length
-          ? `<div class="text-2xl text-yellow-900 font-bold mb-2">${name} visited <span class="font-extrabold text-yellow-900">${data[0].orders}</span> times</div>`
-          : `<div class="text-base text-red-700">${name} did not visit in this period.</div>`;
+          ? `<div class="text-lg md:text-2xl text-yellow-900 font-bold mb-1">${name} visited <span class="font-extrabold text-yellow-900">${data[0].orders}</span> times</div>`
+          : `<div class="text-sm text-red-700">${name} did not visit in this period.</div>`;
       } else {
-        html = '<div class="text-base text-red-700">Choose an insight and date(s).</div>';
+        html = '<div class="text-sm text-red-700">Choose an insight and date(s).</div>';
       }
       document.getElementById('insightResult').innerHTML = html;
     }
+
     function renderChart(labels, data, chartLabel, chartType = 'bar') {
       const el = document.getElementById('myChart');
       if (!el) return;
@@ -364,19 +510,30 @@
         },
         options: {
           responsive: true,
+          maintainAspectRatio: false,
           scales: { y: { beginAtZero: true } }
         }
       });
     }
 
-    // --- Live updates with Socket.io ---
+    // Live updates: same condition as Titishya
     datePicker.onchange = () => fetchOrders(datePicker.value);
-    socket.on('newOrder', (o) => {
-      if ((o.createdAt || '').slice(0,10) === datePicker.value) fetchOrders(datePicker.value);
-    });
-    socket.on('orderUpdated', (o) => { fetchOrders(datePicker.value); });
-    fetchOrders(datePicker.value);
 
+    socket.on('newOrder', (o) => {
+      if ((o.createdAt || '').slice(0,10) === datePicker.value) {
+        fetchOrders(datePicker.value);
+      }
+    });
+    socket.on('orderUpdated', (o) => {
+      fetchOrders(datePicker.value);
+    });
+
+    // Initial load
+    window.addEventListener('DOMContentLoaded', () => {
+      setTab('orders');
+      fetchOrders(datePicker.value);
+      renderDashboard();
+    });
   </script>
 </body>
 </html>
