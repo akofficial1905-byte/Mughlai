@@ -35,8 +35,6 @@ body{
     linear-gradient(160deg,#111,#1f1f1f);
   position:relative;
 }
-
-/* WATERMARK */
 .page::before{
   content:"MUGHLai POINT";
   position:absolute;inset:0;
@@ -55,7 +53,6 @@ h1,h2{
 }
 h1{font-size:2.4rem}
 h2{font-size:1.4rem}
-
 .center{
   height:100%;
   display:flex;
@@ -65,7 +62,7 @@ h2{font-size:1.4rem}
   text-align:center;
 }
 
-/* NAV ARROWS (SMALL, NON-BLOCKING) */
+/* NAV */
 .nav{
   position:fixed;
   top:50%;
@@ -80,8 +77,6 @@ h2{font-size:1.4rem}
 }
 #prev{left:6px}
 #next{right:6px}
-
-/* PAGE NO */
 .pageNo{
   position:absolute;
   bottom:14px;
@@ -99,7 +94,7 @@ h2{font-size:1.4rem}
   color:var(--gold);
   padding:8px 16px;
   border-radius:22px;
-  font-size:.85rem;
+  font-size:.9rem;
   z-index:15;
 }
 .contents-grid{
@@ -141,7 +136,7 @@ select{
   border-radius:6px;
   border:none;
   font-size:.75rem;
-  margin-bottom:4px;
+  margin-bottom:6px;
 }
 .add{
   width:100%;
@@ -169,8 +164,8 @@ select{
 #openCart{
   background:var(--gold);
   color:#000;
-  padding:10px 16px;
-  border-radius:22px;
+  padding:12px 18px;
+  border-radius:26px;
   font-weight:700;
   border:none;
 }
@@ -202,13 +197,11 @@ input,select{
 .primary{
   background:linear-gradient(90deg,#d4af37,#f2d57c);
   border:none;
-  padding:12px;
-  border-radius:26px;
+  padding:14px;
+  border-radius:28px;
   font-weight:700;
 }
-.close{
-  background:none;color:#aaa;border:none;margin-top:6px
-}
+.close{background:none;color:#aaa;border:none}
 
 /* TOAST */
 #toast{
@@ -223,31 +216,12 @@ input,select{
   display:none;
   z-index:50;
 }
-
-/* NAV HINT */
-#navHint{
-  position:fixed;
-  bottom:120px;
-  left:50%;
-  transform:translateX(-50%);
-  background:rgba(0,0,0,.85);
-  color:#fff;
-  padding:10px 18px;
-  border-radius:22px;
-  font-size:.85rem;
-  animation:fadeOut 4s forwards;
-  z-index:40;
-}
-@keyframes fadeOut{0%{opacity:1}70%{opacity:1}100%{opacity:0}}
 </style>
 </head>
 
 <body>
 
-<div id="navHint">⬅ Swipe or use arrows to browse menu ➡</div>
-
 <div id="viewport"><div id="book"></div></div>
-
 <div id="prev" class="nav">❮</div>
 <div id="next" class="nav">❯</div>
 <button id="contentsBtn" onclick="go(1)">📑 Menu</button>
@@ -274,7 +248,7 @@ input,select{
     <input id="table" placeholder="Table Number" style="display:none">
     <input id="address" placeholder="Address" style="display:none">
 
-    <button class="primary" onclick="checkout()">Place Order</button>
+    <button id="placeOrderBtn" class="primary" onclick="checkout()">Place Order</button>
     <button class="close" onclick="closeCart()">❌ Close</button>
   </div>
 </div>
@@ -292,8 +266,9 @@ const mobileInput=document.getElementById("mobile");
 const tableInput=document.getElementById("table");
 const addressInput=document.getElementById("address");
 const orderType=document.getElementById("orderType");
+const placeOrderBtn=document.getElementById("placeOrderBtn");
 
-let cart=[],page=0,locked=false,menu={};
+let cart=[],page=0,locked=false,menu={},placing=false;
 const ITEMS_PER_PAGE=window.innerWidth<500?6:8;
 
 /* NAV */
@@ -356,12 +331,14 @@ function build(){
       let slice=items.slice(i,i+ITEMS_PER_PAGE);
       let html=`<h2>${i===0?cat:cat+" (Continued)"}</h2><div class="items-grid">`;
       slice.forEach(it=>{
-        let opts=`<option value="">Choose option</option>`+
+        let prices=Object.values(it.variants);
+        let minPrice=Math.min(...prices);
+        let opts=`<option value="">Select variant</option>`+
           Object.entries(it.variants).map(v=>`<option value="${v[1]}">${v[0]} — ₹${v[1]}</option>`).join("");
         html+=`
         <div class="item">
           <b>${it.name}</b>
-          <label>Choose option</label>
+          <div class="price">From ₹${minPrice}</div>
           <select>${opts}</select>
           <button class="add" onclick="add('${it.name}',this)">Add</button>
         </div>`;
@@ -375,7 +352,7 @@ function build(){
 /* CART LOGIC */
 function add(name,btn){
   let sel=btn.previousElementSibling;
-  if(!sel.value){alert("Please choose an option");return;}
+  if(!sel.value){alert("Please select a variant");return;}
   let price=+sel.value;
   let f=cart.find(i=>i.name===name&&i.price===price);
   f?f.qty++:cart.push({name,price,qty:1});
@@ -393,14 +370,19 @@ function updateCart(){
     <button onclick="cart[idx].qty++;updateCart()">+</button></div>`).join("");
 }
 
-/* CHECKOUT */
+/* CHECKOUT — DUPLICATE SAFE */
 function checkout(){
-  if(!cart.length)return alert("Cart empty");
-  if(!nameInput.value.trim())return alert("Enter name");
-  if(!mobileInput.value.trim())return alert("Enter mobile");
-  if(!orderType.value)return alert("Select order type");
-  if(orderType.value==="dinein"&&!tableInput.value.trim())return alert("Enter table number");
-  if(orderType.value==="takeaway"&&!addressInput.value.trim())return alert("Enter address");
+  if(placing) return;
+  if(!cart.length) return alert("Cart empty");
+  if(!nameInput.value.trim()) return alert("Enter name");
+  if(!mobileInput.value.trim()) return alert("Enter mobile");
+  if(!orderType.value) return alert("Select order type");
+  if(orderType.value==="dinein"&&!tableInput.value.trim()) return alert("Enter table number");
+  if(orderType.value==="takeaway"&&!addressInput.value.trim()) return alert("Enter address");
+
+  placing=true;
+  placeOrderBtn.disabled=true;
+  placeOrderBtn.innerText="Placing Order...";
 
   fetch("/api/orders",{
     method:"POST",
@@ -414,10 +396,15 @@ function checkout(){
       items:cart
     })
   }).then(r=>{
-    if(!r.ok)throw new Error();
+    if(!r.ok) throw new Error();
     alert("Order placed successfully");
     location.reload();
-  }).catch(()=>alert("Order failed"));
+  }).catch(()=>{
+    placing=false;
+    placeOrderBtn.disabled=false;
+    placeOrderBtn.innerText="Place Order";
+    alert("Order failed. Try again.");
+  });
 }
 </script>
 </body>
