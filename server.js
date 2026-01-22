@@ -196,6 +196,11 @@ io.on('connection', (socket) => {
   socket.emit('connected', { status: 'connected' });
 });
 
+// ---------------- HEALTH CHECK ----------------
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
 // ---------------- SERVER ----------------
 server.listen(PORT, () => {
   console.log(`🚀 Mughlai Point Server running on http://localhost:${PORT}`);
