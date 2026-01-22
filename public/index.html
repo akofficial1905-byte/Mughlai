@@ -28,7 +28,7 @@ body{
 .page{
   min-width:100vw;
   height:100vh;
-  padding:20px 14px 140px;
+  padding:20px 14px 160px;
   background:linear-gradient(160deg,#111,#1f1f1f);
   position:relative;
 }
@@ -45,7 +45,7 @@ body{
   pointer-events:none;
 }
 
-/* TEXT */
+/* HEADINGS */
 h1,h2{font-family:"Playfair Display",serif;color:var(--gold)}
 h1{font-size:2.3rem}
 h2{font-size:1.35rem}
@@ -59,7 +59,7 @@ h2{font-size:1.35rem}
   text-align:center;
 }
 
-/* NAV ARROWS */
+/* NAV */
 .nav{
   position:fixed;
   top:50%;
@@ -74,14 +74,6 @@ h2{font-size:1.35rem}
 #prev{left:6px}
 #next{right:6px}
 
-.pageNo{
-  position:absolute;
-  bottom:70px;
-  right:16px;
-  font-size:.75rem;
-  color:#aaa;
-}
-
 /* MENU BUTTON */
 #contentsBtn{
   position:fixed;
@@ -93,21 +85,6 @@ h2{font-size:1.35rem}
   border-radius:22px;
   font-size:.9rem;
   z-index:15;
-}
-
-/* CONTENTS */
-.contents-grid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:14px;
-  max-width:420px;
-}
-.contents-card{
-  background:#2a2a2a;
-  padding:14px;
-  border-radius:14px;
-  font-weight:600;
-  text-align:center;
 }
 
 /* ITEMS */
@@ -151,17 +128,38 @@ select{
   font-weight:600;
 }
 
-/* CART BUTTON */
+/* FLOATING CART BUTTON */
 #cartBtn{
   position:fixed;
   right:14px;
-  bottom:14px;
+  bottom:70px;
   background:var(--gold);
   color:#000;
   padding:12px 18px;
   border-radius:40px;
   font-weight:700;
   z-index:20;
+}
+
+/* BOTTOM BAR */
+#checkoutBar{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#111;
+  padding:10px;
+  display:flex;
+  justify-content:flex-end;
+  z-index:25;
+}
+#openCartBtn{
+  background:linear-gradient(90deg,#d4af37,#f2d57c);
+  border:none;
+  padding:12px 28px;
+  border-radius:30px;
+  font-weight:700;
+  font-size:1rem;
 }
 
 /* CART MODAL */
@@ -183,6 +181,13 @@ select{
   display:flex;
   flex-direction:column;
 }
+#cartClose{
+  position:absolute;
+  top:16px;
+  right:20px;
+  cursor:pointer;
+  font-size:20px;
+}
 #cartItems{
   flex:1;
   overflow:auto;
@@ -200,25 +205,21 @@ select{
   background:#333;
   border-radius:6px;
   cursor:pointer;
+  margin-left:4px;
 }
-
-/* FOOTER CHECKOUT */
-#checkoutBar{
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  background:#111;
+input,select{
+  width:100%;
   padding:10px;
-  display:flex;
-  justify-content:flex-end;
-  z-index:25;
+  border-radius:8px;
+  border:none;
+  margin-bottom:8px;
+  font-size:.9rem;
 }
-#checkoutBtn{
+button.primary{
   background:linear-gradient(90deg,#d4af37,#f2d57c);
   border:none;
-  padding:12px 26px;
-  border-radius:30px;
+  padding:12px;
+  border-radius:26px;
   font-weight:700;
   font-size:1rem;
 }
@@ -232,10 +233,15 @@ select{
 <div id="prev" class="nav">❮</div>
 <div id="next" class="nav">❯</div>
 <button id="contentsBtn" onclick="go(1)">📑 Menu</button>
-<button id="cartBtn">🛒 0 | ₹0</button>
+<button id="cartBtn" onclick="openCart()">🛒 0 | ₹0</button>
+
+<div id="checkoutBar">
+  <button id="openCartBtn" onclick="openCart()">View Cart / Checkout</button>
+</div>
 
 <div id="cartModal">
   <div id="cartBox">
+    <div id="cartClose" onclick="closeCart()">❌</div>
     <h3>Your Order</h3>
     <div id="cartItems"></div>
 
@@ -249,11 +255,9 @@ select{
     <input id="mobile" placeholder="Mobile Number">
     <input id="table" placeholder="Table Number" style="display:none">
     <input id="address" placeholder="Address" style="display:none">
-  </div>
-</div>
 
-<div id="checkoutBar">
-  <button id="checkoutBtn" onclick="checkout()">Checkout</button>
+    <button class="primary" onclick="checkout()">Place Order</button>
+  </div>
 </div>
 
 <script>
@@ -262,17 +266,23 @@ let cart=[],page=0,menu={},locked=false;
 const ITEMS_PER_PAGE=window.innerWidth<500?6:8;
 
 /* NAV */
-function go(i){if(locked)return;locked=true;page=i;
-book.style.transform=`translateX(-${i*100}vw)`;
-setTimeout(()=>locked=false,600)}
+function go(i){
+  if(locked)return;
+  locked=true;
+  page=i;
+  book.style.transform=`translateX(-${i*100}vw)`;
+  setTimeout(()=>locked=false,600);
+}
 prev.onclick=()=>page>0&&go(page-1);
 next.onclick=()=>page<book.children.length-1&&go(page+1);
 
-/* CART */
-cartBtn.onclick=()=>cartModal.style.display="block";
+/* CART OPEN/CLOSE */
+function openCart(){ cartModal.style.display="block"; }
+function closeCart(){ cartModal.style.display="none"; }
+
 orderType.onchange=()=>{
-table.style.display=orderType.value==="dinein"?"block":"none";
-address.style.display=orderType.value==="takeaway"?"block":"none";
+  table.style.display=orderType.value==="dinein"?"block":"none";
+  address.style.display=orderType.value==="takeaway"?"block":"none";
 };
 
 /* LOAD MENU */
@@ -288,11 +298,10 @@ book.innerHTML+=`
 
 let contents="",start=2;
 Object.keys(menu).forEach(c=>{
-contents+=`<div class="contents-card" onclick="go(${start})">${c}</div>`;
-start+=Math.ceil(menu[c].length/ITEMS_PER_PAGE);
+  contents+=`<div class="item" onclick="go(${start})">${c}</div>`;
+  start+=Math.ceil(menu[c].length/ITEMS_PER_PAGE);
 });
-book.innerHTML+=`<section class="page center">
-<h2>Menu</h2><div class="contents-grid">${contents}</div></section>`;
+book.innerHTML+=`<section class="page center"><h2>Menu</h2>${contents}</section>`;
 
 for(let [cat,items] of Object.entries(menu)){
 for(let i=0;i<items.length;i+=ITEMS_PER_PAGE){
@@ -318,7 +327,7 @@ book.innerHTML+=`<section class="page">${html}</section>`;
 /* CART LOGIC */
 function add(name,btn){
 let sel=btn.previousElementSibling;
-if(sel.selectedIndex===0)return alert("Please select variant");
+if(sel.selectedIndex===0)return alert("Please select a variant");
 let price=+sel.value;
 let label=sel.options[sel.selectedIndex].text;
 let f=cart.find(i=>i.name===name&&i.price===price);
@@ -353,11 +362,13 @@ updateCart();
 /* CHECKOUT */
 function checkout(){
 if(!cart.length)return alert("Cart empty");
-if(!name.value||!mobile.value)return alert("Enter details");
+if(!name.value||!mobile.value)return alert("Enter name & mobile");
 if(orderType.value==="dinein"&&!table.value)return alert("Enter table number");
 if(orderType.value==="takeaway"&&!address.value)return alert("Enter address");
 
-fetch("/api/orders",{method:"POST",headers:{"Content-Type":"application/json"},
+fetch("/api/orders",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
 body:JSON.stringify({
 orderType:orderType.value,
 customerName:name.value,
@@ -365,8 +376,10 @@ mobile:mobile.value,
 tableNumber:orderType.value==="dinein"?table.value:"",
 address:orderType.value==="takeaway"?address.value:"",
 items:cart
-})}).then(()=>{alert("Order placed");location.reload()});
+})
+}).then(()=>{alert("Order placed successfully");location.reload()});
 }
 </script>
+
 </body>
 </html>
