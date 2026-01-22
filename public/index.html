@@ -10,7 +10,6 @@
 <style>
 :root{
   --bg:#0b0b0b;
-  --paper:#1e1e1e;
   --gold:#d4af37;
   --text:#f5f5f5;
 }
@@ -45,11 +44,10 @@ body{
   pointer-events:none;
 }
 
-/* TEXT */
+/* HEADINGS */
 h1,h2{
   font-family:"Playfair Display",serif;
   color:var(--gold);
-  margin-bottom:10px;
 }
 h1{font-size:2.4rem}
 h2{font-size:1.4rem}
@@ -127,15 +125,14 @@ h2{font-size:1.4rem}
   padding:10px;
   font-size:.82rem;
 }
-.item b{display:block;font-size:.92rem;margin-bottom:2px}
-.price{font-size:.75rem;color:var(--gold);margin-bottom:4px}
+.item b{display:block;font-size:.92rem}
+.price{font-size:.75rem;color:var(--gold)}
 select{
   width:100%;
   padding:6px;
   border-radius:6px;
   border:none;
-  font-size:.75rem;
-  margin-bottom:6px;
+  margin:6px 0;
 }
 .add{
   width:100%;
@@ -144,10 +141,9 @@ select{
   border:none;
   background:linear-gradient(90deg,#d4af37,#f2d57c);
   font-weight:600;
-  font-size:.78rem;
 }
 
-/* FOOTER CART */
+/* CART BAR */
 #cartBar{
   position:fixed;
   bottom:0;left:0;right:0;
@@ -159,14 +155,12 @@ select{
   padding:10px 14px;
   z-index:25;
 }
-#cartSummary{font-weight:600}
 #openCart{
   background:var(--gold);
-  color:#000;
+  border:none;
   padding:12px 18px;
   border-radius:26px;
   font-weight:700;
-  border:none;
 }
 
 /* CART MODAL */
@@ -178,50 +172,34 @@ select{
 #cartBox{
   background:#1f1f1f;
   width:90%;max-width:420px;
-  max-height:85vh;
   margin:40px auto;
   padding:18px;
   border-radius:18px;
-  display:flex;
-  flex-direction:column;
 }
-#cartItems{flex:1;overflow:auto;margin-bottom:10px}
-input,select{
-  width:100%;
-  padding:10px;
-  border-radius:8px;
-  border:none;
-  margin-bottom:8px;
-}
-.primary{
-  background:linear-gradient(90deg,#d4af37,#f2d57c);
-  border:none;
-  padding:14px;
-  border-radius:28px;
-  font-weight:700;
-}
-.close{background:none;color:#aaa;border:none}
+#cartItems{max-height:200px;overflow:auto}
 
-/* TOAST */
-#toast{
+/* TOAST + HINT */
+#toast,#navHint{
   position:fixed;
-  bottom:90px;
   left:50%;
   transform:translateX(-50%);
   background:#000;
   color:#fff;
   padding:10px 18px;
   border-radius:22px;
-  display:none;
   z-index:50;
 }
+#toast{bottom:90px;display:none}
+#navHint{bottom:140px;animation:fadeOut 5s forwards}
+@keyframes fadeOut{0%{opacity:1}80%{opacity:1}100%{opacity:0}}
 </style>
 </head>
 
 <body>
 
-<div id="viewport"><div id="book"></div></div>
+<div id="navHint">⬅ Swipe or use arrows to browse menu ➡</div>
 
+<div id="viewport"><div id="book"></div></div>
 <div id="prev" class="nav">❮</div>
 <div id="next" class="nav">❯</div>
 <button id="contentsBtn" onclick="go(1)">📑 Menu</button>
@@ -248,8 +226,8 @@ input,select{
     <input id="table" placeholder="Table Number" style="display:none">
     <input id="address" placeholder="Address" style="display:none">
 
-    <button id="placeOrderBtn" class="primary" onclick="checkout()">Place Order</button>
-    <button class="close" onclick="closeCart()">❌ Close</button>
+    <button id="placeOrderBtn" onclick="checkout()">Place Order</button>
+    <button onclick="closeCart()">❌ Close</button>
   </div>
 </div>
 
@@ -268,11 +246,11 @@ const addressInput=document.getElementById("address");
 const orderType=document.getElementById("orderType");
 const placeOrderBtn=document.getElementById("placeOrderBtn");
 
-let cart=[],page=0,locked=false,menu={},placing=false;
+let cart=[],menu={},page=0,placing=false;
 const ITEMS_PER_PAGE=window.innerWidth<500?6:8;
 
 /* NAV */
-function go(i){if(locked)return;locked=true;page=i;book.style.transform=`translateX(-${i*100}vw)`;setTimeout(()=>locked=false,600)}
+function go(i){page=i;book.style.transform=`translateX(-${i*100}vw)`;}
 prev.onclick=()=>page>0&&go(page-1);
 next.onclick=()=>page<book.children.length-1&&go(page+1);
 
@@ -308,8 +286,7 @@ function build(){
   <section class="page center">
     <h1>Mughlai Point</h1>
     <p>Royal Mughlai Cuisine</p>
-    <p>📞 +91-XXXXXXXXXX</p>
-    <button class="primary" onclick="go(1)">Open Menu</button>
+    <button onclick="go(1)">Open Menu</button>
   </section>`;
 
   let contents="",start=2;
@@ -322,14 +299,12 @@ function build(){
   <section class="page center">
     <h2>Menu</h2>
     <div class="contents-grid">${contents}</div>
-    <div class="pageNo">2</div>
   </section>`;
 
-  let pg=3;
   for(let [cat,items] of Object.entries(menu)){
     for(let i=0;i<items.length;i+=ITEMS_PER_PAGE){
       let slice=items.slice(i,i+ITEMS_PER_PAGE);
-      let html=`<h2>${i===0?cat:cat+" (Continued)"}</h2><div class="items-grid">`;
+      let html=`<h2>${cat}</h2><div class="items-grid">`;
       slice.forEach(it=>{
         let prices=Object.values(it.variants);
         let minPrice=Math.min(...prices);
@@ -344,20 +319,22 @@ function build(){
         </div>`;
       });
       html+=`</div>`;
-      book.innerHTML+=`<section class="page">${html}<div class="pageNo">${pg++}</div></section>`;
+      book.innerHTML+=`<section class="page">${html}</section>`;
     }
   }
 }
 
-/* CART LOGIC */
+/* ADD TO CART */
 function add(name,btn){
-  let sel=btn.previousElementSibling;
-  if(!sel.value){alert("Please select a variant");return;}
-  let price=+sel.value;
-  let f=cart.find(i=>i.name===name&&i.price===price);
-  f?f.qty++:cart.push({name,price,qty:1});
+  const sel=btn.previousElementSibling;
+  if(!sel.value)return alert("Select variant");
+  const variant=sel.options[sel.selectedIndex].text.split(" — ")[0];
+  const price=+sel.value;
+
+  const existing=cart.find(i=>i.name===name&&i.variant===variant);
+  existing?existing.qty++:cart.push({name,variant,price,qty:1});
   updateCart();
-  showToast(`${name} added to cart`);
+  showToast(`${name} (${variant}) added`);
 }
 function updateCart(){
   let c=cart.reduce((s,i)=>s+i.qty,0);
@@ -365,24 +342,22 @@ function updateCart(){
   cartSummary.innerText=`🛒 ${c} items | ₹${t}`;
   document.getElementById("total").innerText=t;
   document.getElementById("cartItems").innerHTML=
-    cart.map((i,idx)=>`<div>${i.qty} × ${i.name} — ₹${i.price*i.qty}
-    <button onclick="cart[idx].qty--;cart[idx].qty<=0&&cart.splice(idx,1);updateCart()">−</button>
-    <button onclick="cart[idx].qty++;updateCart()">+</button></div>`).join("");
+    cart.map(i=>`<div>${i.qty} × ${i.name} (${i.variant})</div>`).join("");
 }
 
 /* CHECKOUT */
 function checkout(){
-  if(placing) return;
-  if(!cart.length) return alert("Cart empty");
-  if(!nameInput.value.trim()) return alert("Enter name");
-  if(!mobileInput.value.trim()) return alert("Enter mobile");
-  if(!orderType.value) return alert("Select order type");
-  if(orderType.value==="dinein"&&!tableInput.value.trim()) return alert("Enter table number");
-  if(orderType.value==="takeaway"&&!addressInput.value.trim()) return alert("Enter address");
+  if(placing)return;
+  if(!cart.length)return alert("Cart empty");
+  if(!nameInput.value.trim())return alert("Enter name");
+  if(!mobileInput.value.trim())return alert("Enter mobile");
+  if(!orderType.value)return alert("Select order type");
+  if(orderType.value==="dinein"&&!tableInput.value.trim())return alert("Enter table");
+  if(orderType.value==="takeaway"&&!addressInput.value.trim())return alert("Enter address");
 
   placing=true;
+  placeOrderBtn.innerText="Placing...";
   placeOrderBtn.disabled=true;
-  placeOrderBtn.innerText="Placing Order...";
 
   fetch("/api/orders",{
     method:"POST",
@@ -396,13 +371,13 @@ function checkout(){
       items:cart
     })
   }).then(r=>{
-    if(!r.ok) throw new Error();
+    if(!r.ok)throw new Error();
     alert("Order placed successfully");
     location.reload();
   }).catch(()=>{
     placing=false;
-    placeOrderBtn.disabled=false;
     placeOrderBtn.innerText="Place Order";
+    placeOrderBtn.disabled=false;
     alert("Order failed");
   });
 }
