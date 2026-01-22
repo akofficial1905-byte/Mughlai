@@ -10,7 +10,6 @@
 <style>
 :root{
   --bg:#0b0b0b;
-  --paper:#1e1e1e;
   --gold:#d4af37;
   --text:#f5f5f5;
 }
@@ -29,14 +28,10 @@ body{
 .page{
   min-width:100vw;
   height:100vh;
-  padding:20px 14px 120px;
-  background:
-    radial-gradient(circle at center, rgba(212,175,55,0.05), transparent 60%),
-    linear-gradient(160deg,#111,#1f1f1f);
+  padding:20px 14px 140px;
+  background:linear-gradient(160deg,#111,#1f1f1f);
   position:relative;
 }
-
-/* Watermark */
 .page::before{
   content:"MUGHLai POINT";
   position:absolute;
@@ -45,18 +40,13 @@ body{
   justify-content:center;
   align-items:center;
   font-family:"Playfair Display",serif;
-  font-size:3.2rem;
+  font-size:3rem;
   color:rgba(255,255,255,0.035);
-  letter-spacing:4px;
   pointer-events:none;
 }
 
 /* TEXT */
-h1,h2{
-  font-family:"Playfair Display",serif;
-  color:var(--gold);
-  margin:8px 0;
-}
+h1,h2{font-family:"Playfair Display",serif;color:var(--gold)}
 h1{font-size:2.3rem}
 h2{font-size:1.35rem}
 
@@ -69,42 +59,43 @@ h2{font-size:1.35rem}
   text-align:center;
 }
 
-/* NAV */
+/* NAV ARROWS */
 .nav{
   position:fixed;
   top:50%;
   transform:translateY(-50%);
-  font-size:22px;
+  font-size:20px;
   color:var(--gold);
-  cursor:pointer;
-  z-index:10;
-  background:rgba(0,0,0,.4);
+  background:rgba(0,0,0,.5);
   padding:6px 10px;
   border-radius:50%;
+  z-index:10;
 }
-#prev{left:8px}
-#next{right:8px}
+#prev{left:6px}
+#next{right:6px}
 
 .pageNo{
   position:absolute;
-  bottom:14px;
-  right:18px;
+  bottom:70px;
+  right:16px;
   font-size:.75rem;
   color:#aaa;
 }
 
-/* CONTENTS */
+/* MENU BUTTON */
 #contentsBtn{
   position:fixed;
   top:12px;
-  left:12px;
+  right:12px;
   background:#2a2a2a;
   color:var(--gold);
-  padding:6px 14px;
-  border-radius:18px;
-  font-size:.8rem;
+  padding:10px 18px;
+  border-radius:22px;
+  font-size:.9rem;
   z-index:15;
 }
+
+/* CONTENTS */
 .contents-grid{
   display:grid;
   grid-template-columns:repeat(2,1fr);
@@ -117,7 +108,6 @@ h2{font-size:1.35rem}
   border-radius:14px;
   font-weight:600;
   text-align:center;
-  cursor:pointer;
 }
 
 /* ITEMS */
@@ -135,50 +125,46 @@ h2{font-size:1.35rem}
   padding:10px;
   font-size:.8rem;
 }
-.item b{font-size:.92rem}
-.price{font-size:.75rem;color:var(--gold);margin:3px 0}
+.price{font-size:.75rem;color:var(--gold)}
 
 .variant-label{
   font-size:.7rem;
   color:#ccc;
-  margin-bottom:3px;
+  margin-top:4px;
 }
-
 select{
   width:100%;
   padding:7px;
   border-radius:8px;
   border:1px solid var(--gold);
   background:#111;
-  color:#f5f5f5;
+  color:#fff;
   font-size:.75rem;
 }
-select:focus{outline:none;box-shadow:0 0 0 2px rgba(212,175,55,.4)}
-
 .add{
   margin-top:6px;
   width:100%;
-  padding:6px;
-  border-radius:16px;
+  padding:7px;
+  border-radius:18px;
   border:none;
   background:linear-gradient(90deg,#d4af37,#f2d57c);
   font-weight:600;
-  font-size:.78rem;
 }
 
-/* CART */
+/* CART BUTTON */
 #cartBtn{
   position:fixed;
   right:14px;
   bottom:14px;
   background:var(--gold);
   color:#000;
-  padding:12px 16px;
+  padding:12px 18px;
   border-radius:40px;
   font-weight:700;
-  font-size:.85rem;
   z-index:20;
 }
+
+/* CART MODAL */
 #cartModal{
   position:fixed;
   inset:0;
@@ -197,42 +183,44 @@ select:focus{outline:none;box-shadow:0 0 0 2px rgba(212,175,55,.4)}
   display:flex;
   flex-direction:column;
 }
-#cartClose{
-  position:absolute;
-  right:20px;
-  top:14px;
-  font-size:20px;
+#cartItems{
+  flex:1;
+  overflow:auto;
+  margin-bottom:10px;
+}
+.cart-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:8px;
+  font-size:.85rem;
+}
+.qty-btn{
+  padding:2px 8px;
+  background:#333;
+  border-radius:6px;
   cursor:pointer;
 }
-#cartItems{flex:1;overflow:auto;margin-bottom:10px}
-input,select{
-  width:100%;
+
+/* FOOTER CHECKOUT */
+#checkoutBar{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#111;
   padding:10px;
-  border-radius:8px;
-  border:none;
-  margin-bottom:8px;
-  font-size:.9rem;
+  display:flex;
+  justify-content:flex-end;
+  z-index:25;
 }
-button.primary{
+#checkoutBtn{
   background:linear-gradient(90deg,#d4af37,#f2d57c);
   border:none;
-  padding:10px;
-  border-radius:22px;
-  font-weight:600;
-}
-
-/* HINT */
-#hint{
-  position:fixed;
-  bottom:80px;
-  left:50%;
-  transform:translateX(-50%);
-  background:#000;
-  color:#ffd;
-  padding:10px 16px;
-  border-radius:20px;
-  font-size:.8rem;
-  z-index:25;
+  padding:12px 26px;
+  border-radius:30px;
+  font-weight:700;
+  font-size:1rem;
 }
 </style>
 </head>
@@ -246,14 +234,10 @@ button.primary{
 <button id="contentsBtn" onclick="go(1)">📑 Menu</button>
 <button id="cartBtn">🛒 0 | ₹0</button>
 
-<div id="hint">Swipe or use arrows to change pages</div>
-
 <div id="cartModal">
   <div id="cartBox">
-    <div id="cartClose" onclick="closeCart()">❌</div>
     <h3>Your Order</h3>
     <div id="cartItems"></div>
-    <p><b>Total ₹<span id="total">0</span></b></p>
 
     <select id="orderType">
       <option value="">Order Type</option>
@@ -265,37 +249,27 @@ button.primary{
     <input id="mobile" placeholder="Mobile Number">
     <input id="table" placeholder="Table Number" style="display:none">
     <input id="address" placeholder="Address" style="display:none">
-
-    <button class="primary" onclick="checkout()">Place Order</button>
   </div>
 </div>
 
-<script>
-setTimeout(()=>document.getElementById("hint").style.display="none",4000);
+<div id="checkoutBar">
+  <button id="checkoutBtn" onclick="checkout()">Checkout</button>
+</div>
 
+<script>
 const book=document.getElementById("book");
-let cart=[],page=0,locked=false,menu={};
+let cart=[],page=0,menu={},locked=false;
 const ITEMS_PER_PAGE=window.innerWidth<500?6:8;
 
 /* NAV */
 function go(i){if(locked)return;locked=true;page=i;
 book.style.transform=`translateX(-${i*100}vw)`;
-setTimeout(()=>locked=false,650)}
+setTimeout(()=>locked=false,600)}
 prev.onclick=()=>page>0&&go(page-1);
 next.onclick=()=>page<book.children.length-1&&go(page+1);
 
-/* SWIPE */
-let sx=0;
-document.addEventListener("touchstart",e=>sx=e.touches[0].clientX);
-document.addEventListener("touchend",e=>{
-let dx=e.changedTouches[0].clientX-sx;
-if(dx>90)prev.onclick();
-if(dx<-90)next.onclick();
-});
-
 /* CART */
 cartBtn.onclick=()=>cartModal.style.display="block";
-function closeCart(){cartModal.style.display="none"}
 orderType.onchange=()=>{
 table.style.display=orderType.value==="dinein"?"block":"none";
 address.style.display=orderType.value==="takeaway"?"block":"none";
@@ -309,7 +283,7 @@ book.innerHTML+=`
 <section class="page center">
 <h1>Mughlai Point</h1>
 <p>Royal Mughlai Cuisine</p>
-<button class="primary" onclick="go(1)">Open Menu</button>
+<button onclick="go(1)">Open Menu</button>
 </section>`;
 
 let contents="",start=2;
@@ -317,14 +291,13 @@ Object.keys(menu).forEach(c=>{
 contents+=`<div class="contents-card" onclick="go(${start})">${c}</div>`;
 start+=Math.ceil(menu[c].length/ITEMS_PER_PAGE);
 });
-book.innerHTML+=`<section class="page center"><h2>Menu</h2>
-<div class="contents-grid">${contents}</div></section>`;
+book.innerHTML+=`<section class="page center">
+<h2>Menu</h2><div class="contents-grid">${contents}</div></section>`;
 
-let pg=3;
 for(let [cat,items] of Object.entries(menu)){
 for(let i=0;i<items.length;i+=ITEMS_PER_PAGE){
 let slice=items.slice(i,i+ITEMS_PER_PAGE);
-let html=`<h2>${i===0?cat:cat+" (Continued)"}</h2><div class="items-grid">`;
+let html=`<h2>${cat}</h2><div class="items-grid">`;
 slice.forEach(it=>{
 let opts=`<option disabled selected>Select variant</option>`+
 Object.entries(it.variants).map(v=>`<option value="${v[1]}">${v[0]} — ₹${v[1]}</option>`).join("");
@@ -338,26 +311,43 @@ html+=`
 </div>`;
 });
 html+=`</div>`;
-book.innerHTML+=`<section class="page">${html}<div class="pageNo">${pg++}</div></section>`;
+book.innerHTML+=`<section class="page">${html}</section>`;
 }}
 }
 
 /* CART LOGIC */
 function add(name,btn){
 let sel=btn.previousElementSibling;
+if(sel.selectedIndex===0)return alert("Please select variant");
 let price=+sel.value;
 let label=sel.options[sel.selectedIndex].text;
 let f=cart.find(i=>i.name===name&&i.price===price);
-if(f)f.qty++;else cart.push({name,price,qty:1});
-alert(`${name} (${label}) added to cart`);
+if(f)f.qty++; else cart.push({name,price,qty:1,label});
 updateCart();
+alert(`${name} (${label}) added to cart`);
 }
+
 function updateCart(){
-let c=cart.reduce((s,i)=>s+i.qty,0);
-let t=cart.reduce((s,i)=>s+i.qty*i.price,0);
+let c=0,t=0;
+cartItems.innerHTML="";
+cart.forEach((i,idx)=>{
+c+=i.qty; t+=i.qty*i.price;
+cartItems.innerHTML+=`
+<div class="cart-row">
+${i.qty}× ${i.name}
+<div>
+<span class="qty-btn" onclick="chg(${idx},1)">+</span>
+<span class="qty-btn" onclick="chg(${idx},-1)">−</span>
+</div>
+</div>`;
+});
 cartBtn.innerText=`🛒 ${c} | ₹${t}`;
-total.innerText=t;
-cartItems.innerHTML=cart.map(i=>`${i.qty}× ${i.name} — ₹${i.price*i.qty}`).join("<br>");
+}
+
+function chg(i,d){
+cart[i].qty+=d;
+if(cart[i].qty<=0)cart.splice(i,1);
+updateCart();
 }
 
 /* CHECKOUT */
