@@ -24,11 +24,15 @@ body{
 
 /* BOOK */
 #viewport{width:100vw;height:100vh;overflow:hidden}
-#book{display:flex;height:100%;transition:transform .6s cubic-bezier(.4,0,.2,1)}
+#book{
+  display:flex;
+  height:100%;
+  transition:transform .6s cubic-bezier(.4,0,.2,1)
+}
 .page{
   min-width:100vw;
   height:100vh;
-  padding:20px 14px 160px;
+  padding:20px 14px 140px;
   background:linear-gradient(160deg,#111,#1f1f1f);
   position:relative;
 }
@@ -46,7 +50,11 @@ body{
 }
 
 /* HEADINGS */
-h1,h2{font-family:"Playfair Display",serif;color:var(--gold)}
+h1,h2{
+  font-family:"Playfair Display",serif;
+  color:var(--gold);
+  margin:8px 0;
+}
 h1{font-size:2.3rem}
 h2{font-size:1.35rem}
 
@@ -59,14 +67,14 @@ h2{font-size:1.35rem}
   text-align:center;
 }
 
-/* NAV */
+/* NAV ARROWS */
 .nav{
   position:fixed;
   top:50%;
   transform:translateY(-50%);
-  font-size:20px;
+  font-size:18px;
   color:var(--gold);
-  background:rgba(0,0,0,.5);
+  background:rgba(0,0,0,.55);
   padding:6px 10px;
   border-radius:50%;
   z-index:10;
@@ -87,6 +95,30 @@ h2{font-size:1.35rem}
   z-index:15;
 }
 
+/* CONTENTS GRID */
+.contents-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:16px;
+  max-width:520px;
+}
+@media(min-width:700px){
+  .contents-grid{grid-template-columns:repeat(3,1fr)}
+}
+.contents-card{
+  background:#2a2a2a;
+  border-radius:16px;
+  padding:18px 10px;
+  font-weight:600;
+  text-align:center;
+  cursor:pointer;
+  transition:.2s;
+}
+.contents-card:hover{
+  background:#333;
+  transform:translateY(-2px);
+}
+
 /* ITEMS */
 .items-grid{
   display:grid;
@@ -102,8 +134,11 @@ h2{font-size:1.35rem}
   padding:10px;
   font-size:.8rem;
 }
-.price{font-size:.75rem;color:var(--gold)}
-
+.price{
+  font-size:.75rem;
+  color:var(--gold);
+  margin:3px 0;
+}
 .variant-label{
   font-size:.7rem;
   color:#ccc;
@@ -128,38 +163,31 @@ select{
   font-weight:600;
 }
 
-/* FLOATING CART BUTTON */
-#cartBtn{
-  position:fixed;
-  right:14px;
-  bottom:70px;
-  background:var(--gold);
-  color:#000;
-  padding:12px 18px;
-  border-radius:40px;
-  font-weight:700;
-  z-index:20;
-}
-
-/* BOTTOM BAR */
-#checkoutBar{
+/* FOOTER CART BAR */
+#footerCart{
   position:fixed;
   bottom:0;
   left:0;
   right:0;
   background:#111;
-  padding:10px;
+  border-top:3px solid var(--gold);
+  padding:10px 14px;
   display:flex;
-  justify-content:flex-end;
+  justify-content:space-between;
+  align-items:center;
   z-index:25;
+}
+#cartSummary{
+  font-weight:600;
+  font-size:.95rem;
 }
 #openCartBtn{
   background:linear-gradient(90deg,#d4af37,#f2d57c);
   border:none;
-  padding:12px 28px;
-  border-radius:30px;
+  padding:10px 24px;
+  border-radius:26px;
   font-weight:700;
-  font-size:1rem;
+  font-size:.95rem;
 }
 
 /* CART MODAL */
@@ -233,12 +261,14 @@ button.primary{
 <div id="prev" class="nav">❮</div>
 <div id="next" class="nav">❯</div>
 <button id="contentsBtn" onclick="go(1)">📑 Menu</button>
-<button id="cartBtn" onclick="openCart()">🛒 0 | ₹0</button>
 
-<div id="checkoutBar">
+<!-- FOOTER CART -->
+<div id="footerCart">
+  <div id="cartSummary">🛒 0 items | ₹0</div>
   <button id="openCartBtn" onclick="openCart()">View Cart / Checkout</button>
 </div>
 
+<!-- CART MODAL -->
 <div id="cartModal">
   <div id="cartBox">
     <div id="cartClose" onclick="closeCart()">❌</div>
@@ -276,7 +306,7 @@ function go(i){
 prev.onclick=()=>page>0&&go(page-1);
 next.onclick=()=>page<book.children.length-1&&go(page+1);
 
-/* CART OPEN/CLOSE */
+/* CART */
 function openCart(){ cartModal.style.display="block"; }
 function closeCart(){ cartModal.style.display="none"; }
 
@@ -298,10 +328,14 @@ book.innerHTML+=`
 
 let contents="",start=2;
 Object.keys(menu).forEach(c=>{
-  contents+=`<div class="item" onclick="go(${start})">${c}</div>`;
+  contents+=`<div class="contents-card" onclick="go(${start})">${c}</div>`;
   start+=Math.ceil(menu[c].length/ITEMS_PER_PAGE);
 });
-book.innerHTML+=`<section class="page center"><h2>Menu</h2>${contents}</section>`;
+book.innerHTML+=`
+<section class="page center">
+<h2>Menu</h2>
+<div class="contents-grid">${contents}</div>
+</section>`;
 
 for(let [cat,items] of Object.entries(menu)){
 for(let i=0;i<items.length;i+=ITEMS_PER_PAGE){
@@ -350,7 +384,7 @@ ${i.qty}× ${i.name}
 </div>
 </div>`;
 });
-cartBtn.innerText=`🛒 ${c} | ₹${t}`;
+cartSummary.innerText=`🛒 ${c} items | ₹${t}`;
 }
 
 function chg(i,d){
