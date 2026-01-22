@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <title>Mughlai Point — Digital Menu</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
 :root{
   --bg:#0b0b0b;
+  --paper:#1e1e1e;
   --gold:#d4af37;
   --text:#f5f5f5;
 }
@@ -24,39 +25,36 @@ body{
 
 /* BOOK */
 #viewport{width:100vw;height:100vh;overflow:hidden}
-#book{
-  display:flex;
-  height:100%;
-  transition:transform .6s cubic-bezier(.4,0,.2,1)
-}
+#book{display:flex;height:100%;transition:transform .6s cubic-bezier(.4,0,.2,1)}
 .page{
   min-width:100vw;
   height:100vh;
-  padding:20px 14px 150px;
-  background:linear-gradient(160deg,#111,#1f1f1f);
+  padding:20px 16px 120px;
+  background:
+    radial-gradient(circle at center, rgba(212,175,55,.05), transparent 60%),
+    linear-gradient(160deg,#111,#1f1f1f);
   position:relative;
 }
+
+/* WATERMARK */
 .page::before{
   content:"MUGHLai POINT";
-  position:absolute;
-  inset:0;
-  display:flex;
-  justify-content:center;
-  align-items:center;
+  position:absolute;inset:0;
+  display:flex;justify-content:center;align-items:center;
   font-family:"Playfair Display",serif;
-  font-size:3rem;
-  color:rgba(255,255,255,0.035);
+  font-size:3.2rem;
+  color:rgba(255,255,255,.035);
   pointer-events:none;
 }
 
-/* HEADINGS */
+/* TEXT */
 h1,h2{
   font-family:"Playfair Display",serif;
   color:var(--gold);
-  margin:8px 0;
+  margin-bottom:10px;
 }
-h1{font-size:2.3rem}
-h2{font-size:1.35rem}
+h1{font-size:2.4rem}
+h2{font-size:1.4rem}
 
 .center{
   height:100%;
@@ -67,56 +65,56 @@ h2{font-size:1.35rem}
   text-align:center;
 }
 
-/* NAV ARROWS */
+/* NAV ARROWS (SMALL, NON-BLOCKING) */
 .nav{
   position:fixed;
   top:50%;
   transform:translateY(-50%);
-  font-size:18px;
-  color:var(--gold);
-  background:rgba(0,0,0,.55);
-  padding:6px 10px;
+  font-size:22px;
+  padding:8px 12px;
+  background:rgba(0,0,0,.5);
   border-radius:50%;
+  color:var(--gold);
+  cursor:pointer;
   z-index:10;
 }
 #prev{left:6px}
 #next{right:6px}
 
-/* MENU BUTTON */
-#contentsBtn{
-  position:fixed;
-  top:12px;
-  right:12px;
-  background:#2a2a2a;
-  color:var(--gold);
-  padding:10px 18px;
-  border-radius:22px;
-  font-size:.9rem;
-  z-index:15;
+/* PAGE NO */
+.pageNo{
+  position:absolute;
+  bottom:14px;
+  right:20px;
+  font-size:.7rem;
+  color:#aaa;
 }
 
-/* CONTENTS GRID */
+/* CONTENTS */
+#contentsBtn{
+  position:fixed;
+  top:14px;
+  right:14px;
+  background:#2a2a2a;
+  color:var(--gold);
+  padding:8px 16px;
+  border-radius:22px;
+  font-size:.85rem;
+  z-index:15;
+}
 .contents-grid{
   display:grid;
   grid-template-columns:repeat(2,1fr);
-  gap:16px;
-  max-width:520px;
-}
-@media(min-width:700px){
-  .contents-grid{grid-template-columns:repeat(3,1fr)}
+  gap:14px;
+  max-width:420px;
 }
 .contents-card{
   background:#2a2a2a;
-  border-radius:16px;
-  padding:18px 10px;
+  padding:14px;
+  border-radius:14px;
   font-weight:600;
   text-align:center;
   cursor:pointer;
-  transition:.2s;
-}
-.contents-card:hover{
-  background:#333;
-  transform:translateY(-2px);
 }
 
 /* ITEMS */
@@ -132,130 +130,104 @@ h2{font-size:1.35rem}
   background:#2a2a2a;
   border-radius:12px;
   padding:10px;
-  font-size:.8rem;
+  font-size:.82rem;
 }
-.price{
-  font-size:.75rem;
-  color:var(--gold);
-  margin:3px 0;
-}
-.variant-label{
-  font-size:.7rem;
-  color:#ccc;
-  margin-top:4px;
-}
+.item b{display:block;font-size:.92rem;margin-bottom:4px}
+.price{font-size:.75rem;color:var(--gold);margin-bottom:4px}
+label{font-size:.7rem;color:#bbb}
 select{
   width:100%;
-  padding:7px;
-  border-radius:8px;
-  border:1px solid var(--gold);
-  background:#111;
-  color:#fff;
+  padding:6px;
+  border-radius:6px;
+  border:none;
   font-size:.75rem;
+  margin-bottom:4px;
 }
 .add{
-  margin-top:6px;
   width:100%;
-  padding:7px;
+  padding:6px;
   border-radius:18px;
   border:none;
   background:linear-gradient(90deg,#d4af37,#f2d57c);
   font-weight:600;
+  font-size:.78rem;
 }
 
-/* FOOTER CART BAR */
-#footerCart{
+/* FOOTER CART */
+#cartBar{
   position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
+  bottom:0;left:0;right:0;
   background:#111;
   border-top:3px solid var(--gold);
-  padding:10px 14px;
   display:flex;
   justify-content:space-between;
   align-items:center;
+  padding:10px 14px;
   z-index:25;
 }
-#cartSummary{
-  font-weight:600;
-  font-size:.95rem;
-}
-#openCartBtn{
-  background:linear-gradient(90deg,#d4af37,#f2d57c);
-  border:none;
-  padding:10px 24px;
-  border-radius:26px;
+#cartSummary{font-weight:600}
+#openCart{
+  background:var(--gold);
+  color:#000;
+  padding:10px 16px;
+  border-radius:22px;
   font-weight:700;
-  font-size:.95rem;
+  border:none;
 }
 
 /* CART MODAL */
 #cartModal{
-  position:fixed;
-  inset:0;
+  position:fixed;inset:0;
   background:rgba(0,0,0,.75);
-  display:none;
-  z-index:30;
+  display:none;z-index:30;
 }
 #cartBox{
   background:#1f1f1f;
-  width:94%;
-  max-width:440px;
-  max-height:88vh;
-  margin:30px auto;
+  width:90%;max-width:420px;
+  max-height:85vh;
+  margin:40px auto;
   padding:18px;
   border-radius:18px;
   display:flex;
   flex-direction:column;
 }
-#cartClose{
-  position:absolute;
-  top:16px;
-  right:20px;
-  cursor:pointer;
-  font-size:20px;
-}
-#cartItems{
-  flex:1;
-  overflow:auto;
-  margin-bottom:10px;
-}
-.cart-row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:8px;
-  font-size:.85rem;
-}
-.qty-btn{
-  padding:2px 8px;
-  background:#333;
-  border-radius:6px;
-  cursor:pointer;
-  margin-left:4px;
-}
+#cartItems{flex:1;overflow:auto;margin-bottom:10px}
 input,select{
   width:100%;
   padding:10px;
   border-radius:8px;
   border:none;
   margin-bottom:8px;
-  font-size:.9rem;
 }
-button.primary{
+.primary{
   background:linear-gradient(90deg,#d4af37,#f2d57c);
   border:none;
   padding:12px;
   border-radius:26px;
   font-weight:700;
-  font-size:1rem;
+}
+.close{
+  background:none;color:#aaa;border:none;margin-top:6px
+}
+
+/* TOAST */
+#toast{
+  position:fixed;
+  bottom:90px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#000;
+  color:#fff;
+  padding:10px 18px;
+  border-radius:22px;
+  display:none;
+  z-index:50;
 }
 
 /* NAV HINT */
 #navHint{
   position:fixed;
-  bottom:80px;
+  bottom:120px;
   left:50%;
   transform:translateX(-50%);
   background:rgba(0,0,0,.85);
@@ -263,18 +235,16 @@ button.primary{
   padding:10px 18px;
   border-radius:22px;
   font-size:.85rem;
-  z-index:40;
   animation:fadeOut 4s forwards;
+  z-index:40;
 }
-@keyframes fadeOut{
-  0%{opacity:1}
-  70%{opacity:1}
-  100%{opacity:0}
-}
+@keyframes fadeOut{0%{opacity:1}70%{opacity:1}100%{opacity:0}}
 </style>
 </head>
 
 <body>
+
+<div id="navHint">⬅ Swipe or use arrows to browse menu ➡</div>
 
 <div id="viewport"><div id="book"></div></div>
 
@@ -282,21 +252,19 @@ button.primary{
 <div id="next" class="nav">❯</div>
 <button id="contentsBtn" onclick="go(1)">📑 Menu</button>
 
-<div id="footerCart">
+<div id="cartBar">
   <div id="cartSummary">🛒 0 items | ₹0</div>
-  <button id="openCartBtn" onclick="openCart()">View Cart / Checkout</button>
+  <button id="openCart">Checkout</button>
 </div>
-
-<div id="navHint">⬅️ Swipe left / right or use arrows ➡️</div>
 
 <div id="cartModal">
   <div id="cartBox">
-    <div id="cartClose" onclick="closeCart()">❌</div>
     <h3>Your Order</h3>
     <div id="cartItems"></div>
+    <p><b>Total ₹<span id="total">0</span></b></p>
 
     <select id="orderType">
-      <option value="">Order Type</option>
+      <option value="">Select Order Type</option>
       <option value="dinein">Dine In</option>
       <option value="takeaway">Takeaway</option>
     </select>
@@ -307,142 +275,150 @@ button.primary{
     <input id="address" placeholder="Address" style="display:none">
 
     <button class="primary" onclick="checkout()">Place Order</button>
+    <button class="close" onclick="closeCart()">❌ Close</button>
   </div>
 </div>
 
+<div id="toast"></div>
+
 <script>
 const book=document.getElementById("book");
-let cart=[],page=0,menu={},locked=false;
+const cartSummary=document.getElementById("cartSummary");
+const cartModal=document.getElementById("cartModal");
+const toast=document.getElementById("toast");
+
+const nameInput=document.getElementById("name");
+const mobileInput=document.getElementById("mobile");
+const tableInput=document.getElementById("table");
+const addressInput=document.getElementById("address");
+const orderType=document.getElementById("orderType");
+
+let cart=[],page=0,locked=false,menu={};
 const ITEMS_PER_PAGE=window.innerWidth<500?6:8;
 
-/* NAVIGATION */
-function go(i){
-  if(locked)return;
-  locked=true;
-  page=i;
-  book.style.transform=`translateX(-${i*100}vw)`;
-  setTimeout(()=>locked=false,600);
-}
+/* NAV */
+function go(i){if(locked)return;locked=true;page=i;book.style.transform=`translateX(-${i*100}vw)`;setTimeout(()=>locked=false,600)}
 prev.onclick=()=>page>0&&go(page-1);
 next.onclick=()=>page<book.children.length-1&&go(page+1);
 
-/* SWIPE SUPPORT */
-let startX=0;
-document.addEventListener("touchstart",e=>startX=e.touches[0].clientX);
+/* SWIPE */
+let sx=0;
+document.addEventListener("touchstart",e=>sx=e.touches[0].clientX);
 document.addEventListener("touchend",e=>{
-  const diff=e.changedTouches[0].clientX-startX;
-  if(Math.abs(diff)<80)return;
-  diff>0?prev.onclick():next.onclick();
+  let dx=e.changedTouches[0].clientX-sx;
+  if(Math.abs(dx)<80)return;
+  dx>0?prev.onclick():next.onclick();
 });
 
 /* CART */
-function openCart(){ cartModal.style.display="block"; }
-function closeCart(){ cartModal.style.display="none"; }
-
+document.getElementById("openCart").onclick=()=>cartModal.style.display="block";
+function closeCart(){cartModal.style.display="none"}
 orderType.onchange=()=>{
-  table.style.display=orderType.value==="dinein"?"block":"none";
-  address.style.display=orderType.value==="takeaway"?"block":"none";
+  tableInput.style.display=orderType.value==="dinein"?"block":"none";
+  addressInput.style.display=orderType.value==="takeaway"?"block":"none";
 };
 
-/* LOAD MENU */
+/* TOAST */
+function showToast(msg){
+  toast.innerText=msg;
+  toast.style.display="block";
+  setTimeout(()=>toast.style.display="none",1500);
+}
+
+/* MENU LOAD */
 fetch("/menu.json").then(r=>r.json()).then(m=>{menu=m;build()});
 
 function build(){
-book.innerHTML+=`
-<section class="page center">
-<h1>Mughlai Point</h1>
-<p>Royal Mughlai Cuisine</p>
-<button onclick="go(1)">Open Menu</button>
-</section>`;
+  book.innerHTML+=`
+  <section class="page center">
+    <h1>Mughlai Point</h1>
+    <p>Royal Mughlai Cuisine</p>
+    <p>📞 +91-XXXXXXXXXX</p>
+    <button class="primary" onclick="go(1)">Open Menu</button>
+  </section>`;
 
-let contents="",start=2;
-Object.keys(menu).forEach(c=>{
-  contents+=`<div class="contents-card" onclick="go(${start})">${c}</div>`;
-  start+=Math.ceil(menu[c].length/ITEMS_PER_PAGE);
-});
-book.innerHTML+=`
-<section class="page center">
-<h2>Menu</h2>
-<div class="contents-grid">${contents}</div>
-</section>`;
+  let contents="",start=2;
+  Object.keys(menu).forEach(c=>{
+    contents+=`<div class="contents-card" onclick="go(${start})">${c}</div>`;
+    start+=Math.ceil(menu[c].length/ITEMS_PER_PAGE);
+  });
 
-for(let [cat,items] of Object.entries(menu)){
-for(let i=0;i<items.length;i+=ITEMS_PER_PAGE){
-let slice=items.slice(i,i+ITEMS_PER_PAGE);
-let html=`<h2>${cat}</h2><div class="items-grid">`;
-slice.forEach(it=>{
-let opts=`<option disabled selected>Select variant</option>`+
-Object.entries(it.variants).map(v=>`<option value="${v[1]}">${v[0]} — ₹${v[1]}</option>`).join("");
-html+=`
-<div class="item">
-<b>${it.name}</b>
-<div class="price">From ₹${Math.min(...Object.values(it.variants))}</div>
-<div class="variant-label">Choose option</div>
-<select>${opts}</select>
-<button class="add" onclick="add('${it.name}',this)">Add</button>
-</div>`;
-});
-html+=`</div>`;
-book.innerHTML+=`<section class="page">${html}</section>`;
-}}
+  book.innerHTML+=`
+  <section class="page center">
+    <h2>Menu</h2>
+    <div class="contents-grid">${contents}</div>
+    <div class="pageNo">2</div>
+  </section>`;
+
+  let pg=3;
+  for(let [cat,items] of Object.entries(menu)){
+    for(let i=0;i<items.length;i+=ITEMS_PER_PAGE){
+      let slice=items.slice(i,i+ITEMS_PER_PAGE);
+      let html=`<h2>${i===0?cat:cat+" (Continued)"}</h2><div class="items-grid">`;
+      slice.forEach(it=>{
+        let opts=`<option value="">Choose option</option>`+
+          Object.entries(it.variants).map(v=>`<option value="${v[1]}">${v[0]} — ₹${v[1]}</option>`).join("");
+        html+=`
+        <div class="item">
+          <b>${it.name}</b>
+          <label>Choose option</label>
+          <select>${opts}</select>
+          <button class="add" onclick="add('${it.name}',this)">Add</button>
+        </div>`;
+      });
+      html+=`</div>`;
+      book.innerHTML+=`<section class="page">${html}<div class="pageNo">${pg++}</div></section>`;
+    }
+  }
 }
 
 /* CART LOGIC */
 function add(name,btn){
-let sel=btn.previousElementSibling;
-if(sel.selectedIndex===0)return alert("Please select a variant");
-let price=+sel.value;
-let label=sel.options[sel.selectedIndex].text;
-let f=cart.find(i=>i.name===name&&i.price===price);
-if(f)f.qty++; else cart.push({name,price,qty:1,label});
-updateCart();
-alert(`${name} (${label}) added to cart`);
+  let sel=btn.previousElementSibling;
+  if(!sel.value){alert("Please choose an option");return;}
+  let price=+sel.value;
+  let f=cart.find(i=>i.name===name&&i.price===price);
+  f?f.qty++:cart.push({name,price,qty:1});
+  updateCart();
+  showToast("Item added to cart");
 }
-
 function updateCart(){
-let c=0,t=0;
-cartItems.innerHTML="";
-cart.forEach((i,idx)=>{
-c+=i.qty; t+=i.qty*i.price;
-cartItems.innerHTML+=`
-<div class="cart-row">
-${i.qty}× ${i.name}
-<div>
-<span class="qty-btn" onclick="chg(${idx},1)">+</span>
-<span class="qty-btn" onclick="chg(${idx},-1)">−</span>
-</div>
-</div>`;
-});
-cartSummary.innerText=`🛒 ${c} items | ₹${t}`;
-}
-
-function chg(i,d){
-cart[i].qty+=d;
-if(cart[i].qty<=0)cart.splice(i,1);
-updateCart();
+  let c=cart.reduce((s,i)=>s+i.qty,0);
+  let t=cart.reduce((s,i)=>s+i.qty*i.price,0);
+  cartSummary.innerText=`🛒 ${c} items | ₹${t}`;
+  document.getElementById("total").innerText=t;
+  document.getElementById("cartItems").innerHTML=
+    cart.map((i,idx)=>`<div>${i.qty} × ${i.name} — ₹${i.price*i.qty}
+    <button onclick="cart[idx].qty--;cart[idx].qty<=0&&cart.splice(idx,1);updateCart()">−</button>
+    <button onclick="cart[idx].qty++;updateCart()">+</button></div>`).join("");
 }
 
 /* CHECKOUT */
 function checkout(){
-if(!cart.length)return alert("Cart empty");
-if(!name.value||!mobile.value)return alert("Enter name & mobile");
-if(orderType.value==="dinein"&&!table.value)return alert("Enter table number");
-if(orderType.value==="takeaway"&&!address.value)return alert("Enter address");
+  if(!cart.length)return alert("Cart empty");
+  if(!nameInput.value.trim())return alert("Enter name");
+  if(!mobileInput.value.trim())return alert("Enter mobile");
+  if(!orderType.value)return alert("Select order type");
+  if(orderType.value==="dinein"&&!tableInput.value.trim())return alert("Enter table number");
+  if(orderType.value==="takeaway"&&!addressInput.value.trim())return alert("Enter address");
 
-fetch("/api/orders",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
-orderType:orderType.value,
-customerName:name.value,
-mobile:mobile.value,
-tableNumber:orderType.value==="dinein"?table.value:"",
-address:orderType.value==="takeaway"?address.value:"",
-items:cart
-})
-}).then(()=>{alert("Order placed successfully");location.reload()});
+  fetch("/api/orders",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({
+      orderType:orderType.value,
+      customerName:nameInput.value.trim(),
+      mobile:mobileInput.value.trim(),
+      tableNumber:orderType.value==="dinein"?tableInput.value.trim():"",
+      address:orderType.value==="takeaway"?addressInput.value.trim():"",
+      items:cart
+    })
+  }).then(r=>{
+    if(!r.ok)throw new Error();
+    alert("Order placed successfully");
+    location.reload();
+  }).catch(()=>alert("Order failed"));
 }
 </script>
-
 </body>
 </html>
