@@ -36,7 +36,7 @@ body{
   position:relative;
 }
 .page::before{
-  content:"MUGHLai POINT";
+  content:"MUGHLAI POINT";
   position:absolute;inset:0;
   display:flex;justify-content:center;align-items:center;
   font-family:"Playfair Display",serif;
@@ -127,9 +127,8 @@ h2{font-size:1.4rem}
   padding:10px;
   font-size:.82rem;
 }
-.item b{display:block;font-size:.92rem;margin-bottom:4px}
+.item b{display:block;font-size:.92rem;margin-bottom:2px}
 .price{font-size:.75rem;color:var(--gold);margin-bottom:4px}
-label{font-size:.7rem;color:#bbb}
 select{
   width:100%;
   padding:6px;
@@ -222,6 +221,7 @@ input,select{
 <body>
 
 <div id="viewport"><div id="book"></div></div>
+
 <div id="prev" class="nav">❮</div>
 <div id="next" class="nav">❯</div>
 <button id="contentsBtn" onclick="go(1)">📑 Menu</button>
@@ -300,7 +300,7 @@ function showToast(msg){
   setTimeout(()=>toast.style.display="none",1500);
 }
 
-/* MENU LOAD */
+/* LOAD MENU */
 fetch("/menu.json").then(r=>r.json()).then(m=>{menu=m;build()});
 
 function build(){
@@ -357,7 +357,7 @@ function add(name,btn){
   let f=cart.find(i=>i.name===name&&i.price===price);
   f?f.qty++:cart.push({name,price,qty:1});
   updateCart();
-  showToast("Item added to cart");
+  showToast(`${name} added to cart`);
 }
 function updateCart(){
   let c=cart.reduce((s,i)=>s+i.qty,0);
@@ -370,7 +370,7 @@ function updateCart(){
     <button onclick="cart[idx].qty++;updateCart()">+</button></div>`).join("");
 }
 
-/* CHECKOUT — DUPLICATE SAFE */
+/* CHECKOUT */
 function checkout(){
   if(placing) return;
   if(!cart.length) return alert("Cart empty");
@@ -403,7 +403,7 @@ function checkout(){
     placing=false;
     placeOrderBtn.disabled=false;
     placeOrderBtn.innerText="Place Order";
-    alert("Order failed. Try again.");
+    alert("Order failed");
   });
 }
 </script>
