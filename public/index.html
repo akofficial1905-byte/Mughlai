@@ -32,7 +32,7 @@ body{
 .page{
   min-width:100vw;
   height:100vh;
-  padding:20px 14px 140px;
+  padding:20px 14px 150px;
   background:linear-gradient(160deg,#111,#1f1f1f);
   position:relative;
 }
@@ -251,6 +251,26 @@ button.primary{
   font-weight:700;
   font-size:1rem;
 }
+
+/* NAV HINT */
+#navHint{
+  position:fixed;
+  bottom:80px;
+  left:50%;
+  transform:translateX(-50%);
+  background:rgba(0,0,0,.85);
+  color:#fff;
+  padding:10px 18px;
+  border-radius:22px;
+  font-size:.85rem;
+  z-index:40;
+  animation:fadeOut 4s forwards;
+}
+@keyframes fadeOut{
+  0%{opacity:1}
+  70%{opacity:1}
+  100%{opacity:0}
+}
 </style>
 </head>
 
@@ -262,13 +282,13 @@ button.primary{
 <div id="next" class="nav">❯</div>
 <button id="contentsBtn" onclick="go(1)">📑 Menu</button>
 
-<!-- FOOTER CART -->
 <div id="footerCart">
   <div id="cartSummary">🛒 0 items | ₹0</div>
   <button id="openCartBtn" onclick="openCart()">View Cart / Checkout</button>
 </div>
 
-<!-- CART MODAL -->
+<div id="navHint">⬅️ Swipe left / right or use arrows ➡️</div>
+
 <div id="cartModal">
   <div id="cartBox">
     <div id="cartClose" onclick="closeCart()">❌</div>
@@ -295,7 +315,7 @@ const book=document.getElementById("book");
 let cart=[],page=0,menu={},locked=false;
 const ITEMS_PER_PAGE=window.innerWidth<500?6:8;
 
-/* NAV */
+/* NAVIGATION */
 function go(i){
   if(locked)return;
   locked=true;
@@ -305,6 +325,15 @@ function go(i){
 }
 prev.onclick=()=>page>0&&go(page-1);
 next.onclick=()=>page<book.children.length-1&&go(page+1);
+
+/* SWIPE SUPPORT */
+let startX=0;
+document.addEventListener("touchstart",e=>startX=e.touches[0].clientX);
+document.addEventListener("touchend",e=>{
+  const diff=e.changedTouches[0].clientX-startX;
+  if(Math.abs(diff)<80)return;
+  diff>0?prev.onclick():next.onclick();
+});
 
 /* CART */
 function openCart(){ cartModal.style.display="block"; }
