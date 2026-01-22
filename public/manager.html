@@ -15,38 +15,16 @@
     body { font-family: Inter, system-ui, sans-serif; }
 
     .order-type-badge {
-      font-size: 12px;
-      font-weight: bold;
-      border-radius: 7px;
-      padding: 4px 10px;
+      font-size:12px;font-weight:bold;border-radius:7px;padding:4px 10px
     }
-    .order-type-dinein { background:#fbbf24; color:#222; }
-    .order-type-takeaway { background:#34d399; color:#222; }
-    .order-type-delivery { background:#60a5fa; color:#fff; }
+    .order-type-dinein { background:#fbbf24;color:#222 }
+    .order-type-takeaway { background:#34d399;color:#222 }
+    .order-type-delivery { background:#60a5fa;color:#fff }
 
-    .order-card {
-      border-radius: 16px;
-      padding: 16px;
-    }
+    .order-card{border-radius:14px;padding:16px}
 
-    .order-items li {
-      padding: 6px 0;
-      font-size: 0.95rem;
-    }
-
-    .order-actions button {
-      padding: 10px 14px;
-      font-size: 0.95rem;
-      border-radius: 10px;
-    }
-
-    .tab-btn {
-      transition: all .2s;
-    }
-
-    @media (max-width:768px){
-      .order-card h3 { font-size: 1.05rem; }
-      .order-card { font-size: 0.95rem; }
+    @media(max-width:768px){
+      .desktop-only{display:none}
     }
   </style>
 </head>
@@ -63,14 +41,13 @@
 
   <!-- TABS -->
   <div class="flex gap-2 mb-6">
-    <button id="tabOrders" class="tab-btn bg-amber-400 text-black px-4 py-2 rounded font-bold">Orders</button>
-    <button id="tabAnalytics" class="tab-btn bg-gray-700 text-gray-200 px-4 py-2 rounded font-bold">Analytics</button>
+    <button id="tabOrders" class="bg-amber-400 text-black px-4 py-2 rounded font-bold">Orders</button>
+    <button id="tabAnalytics" class="bg-gray-700 px-4 py-2 rounded font-bold">Analytics</button>
   </div>
 
-  <!-- ORDERS SECTION -->
+  <!-- ================= ORDERS ================= -->
   <div id="ordersSection">
 
-    <!-- DATE FILTER -->
     <div class="bg-gray-800 rounded-xl p-4 mb-4 flex flex-col sm:flex-row justify-between gap-4">
       <div>
         <label class="text-sm text-amber-300 font-bold">Select Date</label>
@@ -83,27 +60,23 @@
       </div>
     </div>
 
-    <!-- ORDER LISTS -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
       <section>
         <h2 class="text-xl font-semibold text-yellow-200 mb-4">Incoming Orders</h2>
         <div id="incoming" class="space-y-4"></div>
       </section>
-
       <section>
         <h2 class="text-xl font-semibold text-green-300 mb-4">Delivered Orders</h2>
         <div id="delivered" class="space-y-4"></div>
       </section>
-
     </div>
   </div>
 
-  <!-- ANALYTICS SECTION -->
+  <!-- ================= ANALYTICS ================= -->
   <div id="analyticsSection" style="display:none">
 
-    <!-- DASHBOARD -->
-    <section class="bg-white rounded-xl p-6 mb-6 shadow border">
+    <!-- DASHBOARD (ORIGINAL LOGIC) -->
+    <section class="bg-white rounded-xl p-6 mb-8 shadow border">
       <div class="flex flex-wrap gap-4 items-center mb-4">
         <select id="dashboardPeriod" class="border p-2 rounded font-bold">
           <option value="day">Day</option>
@@ -135,7 +108,7 @@
 
     <!-- INSIGHTS -->
     <section class="bg-white rounded-xl p-6 shadow">
-      <h3 class="text-xl font-bold mb-4 text-yellow-800">Insights</h3>
+      <h3 class="text-xl font-bold mb-4 text-yellow-800">Detailed Insights</h3>
       <div id="insightResult"></div>
     </section>
 
@@ -146,102 +119,89 @@
 /* ================= SOCKET ================= */
 const socket = io();
 
-/* ================= TABS ================= */
-const tabOrders = document.getElementById('tabOrders');
-const tabAnalytics = document.getElementById('tabAnalytics');
-const ordersSection = document.getElementById('ordersSection');
-const analyticsSection = document.getElementById('analyticsSection');
+/* ================= TAB SWITCH ================= */
+const tabOrders=document.getElementById('tabOrders');
+const tabAnalytics=document.getElementById('tabAnalytics');
+const ordersSection=document.getElementById('ordersSection');
+const analyticsSection=document.getElementById('analyticsSection');
 
-tabOrders.onclick = () => {
-  ordersSection.style.display = 'block';
-  analyticsSection.style.display = 'none';
-  tabOrders.className = 'tab-btn bg-amber-400 text-black px-4 py-2 rounded font-bold';
-  tabAnalytics.className = 'tab-btn bg-gray-700 text-gray-200 px-4 py-2 rounded font-bold';
+tabOrders.onclick=()=>{
+  ordersSection.style.display='block';
+  analyticsSection.style.display='none';
+  tabOrders.className='bg-amber-400 text-black px-4 py-2 rounded font-bold';
+  tabAnalytics.className='bg-gray-700 px-4 py-2 rounded font-bold';
 };
-tabAnalytics.onclick = () => {
-  ordersSection.style.display = 'none';
-  analyticsSection.style.display = 'block';
-  tabAnalytics.className = 'tab-btn bg-amber-400 text-black px-4 py-2 rounded font-bold';
-  tabOrders.className = 'tab-btn bg-gray-700 text-gray-200 px-4 py-2 rounded font-bold';
+tabAnalytics.onclick=()=>{
+  ordersSection.style.display='none';
+  analyticsSection.style.display='block';
+  tabAnalytics.className='bg-amber-400 text-black px-4 py-2 rounded font-bold';
+  tabOrders.className='bg-gray-700 px-4 py-2 rounded font-bold';
 };
 
 /* ================= ORDERS ================= */
-const datePicker = document.getElementById('datePicker');
-datePicker.value = new Date().toISOString().slice(0,10);
+const datePicker=document.getElementById('datePicker');
+datePicker.value=new Date().toISOString().slice(0,10);
 
 async function fetchOrders(date){
-  const res = await fetch('/api/orders?date='+date);
-  const orders = await res.json();
+  const res=await fetch('/api/orders?date='+date);
+  const orders=await res.json();
   renderOrders(orders);
 }
 
 function renderOrders(orders){
-  const incoming = orders.filter(o=>o.status!=='delivered' && o.status!=='deleted');
-  const delivered = orders.filter(o=>o.status==='delivered');
+  const incoming=orders.filter(o=>o.status!=='delivered'&&o.status!=='deleted');
+  const delivered=orders.filter(o=>o.status==='delivered');
 
-  document.getElementById('totalOrders').innerText = orders.length;
-  document.getElementById('totalRevenue').innerText =
-    orders.reduce((s,o)=>s+(o.total||0),0);
+  totalOrders.innerText=orders.length;
+  totalRevenue.innerText=orders.reduce((s,o)=>s+(o.total||0),0);
 
-  document.getElementById('incoming').innerHTML =
-    incoming.map(o=>orderCard(o,true)).join('') || '<p>No orders</p>';
-
-  document.getElementById('delivered').innerHTML =
-    delivered.map(o=>orderCard(o,false)).join('') || '<p>No delivered orders</p>';
+  incomingEl.innerHTML=incoming.map(o=>card(o,true)).join('');
+  deliveredEl.innerHTML=delivered.map(o=>card(o,false)).join('');
 }
 
-function orderCard(o,isIncoming){
+function card(o,isIncoming){
   return `
   <div class="order-card bg-gray-900 border ${isIncoming?'border-amber-400':'border-gray-700'}">
     <div class="flex justify-between">
       <div>
         <span class="order-type-badge order-type-${o.orderType}">${o.orderType}</span>
-        <h3 class="font-bold">${o.customerName}</h3>
-        <p class="text-xs text-gray-400">${new Date(o.createdAt).toLocaleString()}</p>
-        ${o.orderType==='dinein'?`<p>Table: ${o.tableNumber}</p>`:''}
+        <div class="font-bold">${o.customerName}</div>
+        ${o.orderType==='dinein'?`<div>Table: ${o.tableNumber}</div>`:''}
       </div>
-      <div class="text-right">
-        <div class="font-bold text-amber-200">₹${o.total}</div>
-        <div class="text-xs">${o.mobile||''}</div>
-      </div>
+      <div class="font-bold text-amber-200">₹${o.total}</div>
     </div>
-
-    <ul class="order-items mt-3">
-      ${o.items.map(i=>`<li>• ${i.qty} × ${i.name} — ₹${i.price}</li>`).join('')}
+    <ul class="mt-3 text-sm">
+      ${o.items.map(i=>`<li>• ${i.qty} × ${i.name}</li>`).join('')}
     </ul>
-
-    <div class="order-actions mt-3 flex flex-wrap gap-2">
+    <div class="mt-3 flex gap-2">
       ${isIncoming?`
-        <button class="bg-blue-600" onclick="updateStatus('${o._id}','preparing')">Preparing</button>
-        <button class="bg-green-600" onclick="updateStatus('${o._id}','delivered')">Delivered</button>
-        <button class="bg-red-600" onclick="deleteOrder('${o._id}')">Delete</button>
-      `:''}
-      <button class="bg-teal-400 text-black font-bold"
-        onclick='bluetoothPrint(${JSON.stringify(o)})'>
-        Print
-      </button>
+        <button onclick="updateStatus('${o._id}','delivered')" class="bg-green-600 px-3 py-1 rounded">Delivered</button>`:''}
+      <button onclick='bluetoothPrint(${JSON.stringify(o)})'
+        class="bg-teal-400 text-black px-3 py-1 rounded font-bold">Print</button>
     </div>
   </div>`;
 }
 
-/* ================= API ACTIONS ================= */
-async function updateStatus(id,status){
-  await fetch('/api/orders/'+id+'/status',{
-    method:'PATCH',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({status})
+/* ================= RAW BT PRINT ================= */
+function bluetoothPrint(order){
+  let text='MUGHLAI POINT\n';
+  text+='------------------------------\n';
+  text+=`Customer: ${order.customerName}\n`;
+  if(order.tableNumber) text+=`Table: ${order.tableNumber}\n`;
+  text+='------------------------------\n';
+  order.items.forEach(i=>{
+    text+=`${i.qty} x ${i.name} ₹${i.price}\n`;
   });
-}
-async function deleteOrder(id){
-  if(!confirm('Delete order?'))return;
-  await fetch('/api/orders/'+id+'/status',{
-    method:'PATCH',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({status:'deleted'})
-  });
+  text+='------------------------------\n';
+  text+=`TOTAL: ₹${order.total}\n\n`;
+
+  const uri='rawbt:'+encodeURIComponent(text);
+  window.location.href=uri;
 }
 
 /* ================= LIVE ================= */
+const incomingEl=document.getElementById('incoming');
+const deliveredEl=document.getElementById('delivered');
 datePicker.onchange=()=>fetchOrders(datePicker.value);
 socket.on('newOrder',()=>fetchOrders(datePicker.value));
 socket.on('orderUpdated',()=>fetchOrders(datePicker.value));
