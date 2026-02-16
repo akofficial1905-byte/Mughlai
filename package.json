@@ -1,5 +1,5 @@
 {
-  "name": "mughlai-point",
+  "name": "military-hotel-oms",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,9 +11,9 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^5.1.0",
-    "mongoose": "^8.19.3",
-    "socket.io": "^4.8.1"
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "mongoose": "^9.2.1",
+    "socket.io": "^4.8.3"
   }
 }
