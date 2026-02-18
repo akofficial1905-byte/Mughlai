@@ -12,11 +12,7 @@ const PORT = process.env.PORT || 3000;
 
 // --- MongoDB connection ---
 mongoose.connect(
-  'mongodb+srv://architmagic_db_user:v4TYaSl8O5zH4h60@mughlai.ttewbke.mongodb.net/mughlai?retryWrites=true&w=majority',
-  {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  }
+  'mongodb+srv://architmagic_db_user:v4TYaSl8O5zH4h60@mughlai.ttewbke.mongodb.net/mughlai?retryWrites=true&w=majority'
 );
 mongoose.connection.on('connected', () => console.log('✅ Connected to MongoDB'));
 mongoose.connection.on('error', (err) => console.error('❌ MongoDB Error:', err));
@@ -44,7 +40,7 @@ app.get('/menu.json', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/menu.json'));
 });
 
-// --- Utility: IST date boundaries (match Titishya style) ---
+// --- Utility: IST date boundaries ---
 function getISTDateBounds(dateStr) {
   const date = dateStr || new Date().toISOString().slice(0, 10);
   const start = new Date(Date.parse(date + 'T00:00:00+05:30'));
@@ -80,7 +76,7 @@ app.post('/api/orders', async (req, res) => {
     status: 'incoming'
   });
   await order.save();
-  io.emit('newOrder', order); // real-time emit
+  io.emit('newOrder', order);
   res.json(order);
 });
 
@@ -90,7 +86,7 @@ app.patch('/api/orders/:id/status', async (req, res) => {
   const { status } = req.body;
   const order = await Order.findByIdAndUpdate(id, { status }, { new: true });
   if (order) {
-    io.emit('orderUpdated', order); // notify all managers
+    io.emit('orderUpdated', order);
     res.json(order);
   } else {
     res.status(404).json({ error: 'Order not found' });
@@ -108,7 +104,6 @@ app.get('/api/dashboard/sales', async (req, res) => {
   if (period === 'day') {
     ({ start, end } = getISTDateBounds(date));
   } else if (period === 'week') {
-    // Use IST day as base, then go back to Sunday-like start
     const { start: dayStart } = getISTDateBounds(date);
     const d = new Date(dayStart);
     const first = new Date(d.setDate(d.getDate() - d.getDay()));
@@ -133,7 +128,10 @@ app.get('/api/dashboard/sales', async (req, res) => {
 app.get('/api/dashboard/peakhour', async (req, res) => {
   const date = req.query.date || new Date().toISOString().slice(0, 10);
   const { start, end } = getISTDateBounds(date);
-  const orders = await Order.find({ createdAt: { $gte: start, $lte: end }, status: { $ne: 'deleted' } });
+  const orders = await Order.find({
+    createdAt: { $gte: start, $lte: end },
+    status: { $ne: 'deleted' }
+  });
   const hourly = {};
   orders.forEach(o => {
     const hour = new Date(o.createdAt).getHours();
@@ -157,12 +155,15 @@ app.get('/api/dashboard/topdish', async (req, res) => {
     const date = req.query.date || new Date().toISOString().slice(0, 10);
     ({ start, end } = getISTDateBounds(date));
   }
-  const orders = await Order.find({ createdAt: { $gte: start, $lte: end }, status: { $ne: 'deleted' } });
+  const orders = await Order.find({
+    createdAt: { $gte: start, $lte: end },
+    status: { $ne: 'deleted' }
+  });
   const countMap = {};
   orders.forEach(o => {
-    o.items.forEach(i => {
+    (o.items || []).forEach(i => {
       const n = i.name || 'Unnamed Item';
-      countMap[n] = (countMap[n] || 0) + i.qty;
+      countMap[n] = (countMap[n] || 0) + (i.qty || 0);
     });
   });
   const top = Object.entries(countMap).sort((a, b) => b[1] - a[1])[0];
@@ -182,7 +183,11 @@ app.get('/api/dashboard/repeatcustomers', async (req, res) => {
   }
 
   const nameFilter = req.query.name ? { customerName: req.query.name } : {};
-  const orders = await Order.find({ createdAt: { $gte: start, $lte: end }, status: { $ne: 'deleted' }, ...nameFilter });
+  const orders = await Order.find({
+    createdAt: { $gte: start, $lte: end },
+    status: { $ne: 'deleted' },
+    ...nameFilter
+  });
 
   const stats = {};
   orders.forEach(o => {
@@ -207,8 +212,8 @@ io.on('connection', (socket) => {
 });
 
 // ---------------- HEALTH CHECK ----------------
-app.get("/health", (req, res) => {
-  res.status(200).send("OK");
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
 });
 
 // ---------------- SERVER ----------------
