@@ -1,9 +1,10 @@
 {
-  "name": "military-hotel-oms",
+  "name": "Mughlai",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Mughlai Restaurant Ordering & Management Server",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -14,6 +15,8 @@
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "mongoose": "^9.2.1",
-    "socket.io": "^4.8.3"
+    "socket.io": "^4.8.3",
+    "razorpay": "^2.9.4",
+    "dotenv": "^16.4.5"
   }
 }
